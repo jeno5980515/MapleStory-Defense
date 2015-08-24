@@ -316,7 +316,7 @@ var Defender = (function(){
 			preStage.initConfirmButton();
 			preStage.initInvoke();
 		},
-		setMouseEvent = function(a, b) {
+		setMouseEvent : function(a, b) {
 	        document.onclick = b;
 	        document.onmousemove = a;
 	        document.ontouchend = b
