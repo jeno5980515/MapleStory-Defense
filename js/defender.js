@@ -316,6 +316,11 @@ var Defender = (function(){
 			preStage.initConfirmButton();
 			preStage.initInvoke();
 		},
+		setMouseEvent = function(a, b) {
+	        document.onclick = b;
+	        document.onmousemove = a;
+	        document.ontouchend = b
+    	},
 		initBackground : function(){
 			background = { x:0 , y:0 , w: canvasMap['background'].width , h: canvasMap['background'].height} ;
 		},
@@ -455,8 +460,7 @@ var Defender = (function(){
 			}
 		},
 		showAll : function(){
-			document.onmousemove = preStage.mouseOver ;
-			document.onclick = preStage.mouseClick ;
+			common.setMouseEvent(preStage.mouseOver,preStage.mouseClick);
 			preStage.showBackground();
 			preStage.showDescription();
 			preStage.showResetButton();
@@ -583,8 +587,9 @@ var Defender = (function(){
 				}
 			},
 			showAll: function(){
-				document.onmousemove = preStage.pickSoldier.mouseOver ;
-				document.onclick = preStage.pickSoldier.mouseClick ;
+
+				common.setMouseEvent(preStage.pickSoldier.mouseOver,preStage.pickSoldier.mouseClick);
+
 				gameCtx.drawImage(canvasMap['choose_soldier'],canvasWidth/2-canvasMap['choose_soldier'].width/2,canvasHeight/2-canvasMap['choose_soldier'].height/2);
 				preStage.pickSoldier.showMySoldierList();
 				for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
@@ -644,8 +649,7 @@ var Defender = (function(){
 				stage.stage1.initMonsterList();
 			},
 			showAll : function(){
-				document.onmousemove = preStage.mouseOver ;
-				document.onclick = preStage.mouseClick ;
+				common.setMouseEvent(preStage.mouseOver,preStage.mouseClick);
 				stage.addMonster();
 				preStage.showBackground();
 				preStage.showDescription();
@@ -659,3 +663,7 @@ var Defender = (function(){
 
 	window.onload = common.init();
 })();
+
+window.addEventListener("load", function() {
+    FastClick.attach(document.body)
+}, !1);
