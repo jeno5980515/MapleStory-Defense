@@ -8,7 +8,7 @@ var Defender = (function(){
 	var IE = "ActiveXObject" in window ;
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
-	var imageList = ["background","fighter","swordman","atkUp","monster_normal","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win"] ;
+	var imageList = ["background","beginner_stand","swordman","atkUp","monster_normal","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win","beginner_hit","beginner","beginner_attack","swordman_hit"] ;
 	var loadImageProgress = 0 ;
 	var imgMap = {} ;
 	var canvasMap = {} ;
@@ -20,15 +20,20 @@ var Defender = (function(){
 	var mySoldierList = [] ;
 	var mouseOver = 'none' ;
 	var nowChooseSoldier ;
-	var roleList = ['fighter','swordman','archer','magician'] ;
+	var roleList = ['beginner','swordman','archer','magician'] ;
 	var monsterIdList = ['monster_normal'];
-	var roleDescriptionList = ['fighter','swordman','archer','magician'] ;
+	var roleDescriptionList = ['beginner','swordman','archer','magician'] ;
 	var monsterDescriptionList = ['monster_normal'] ;
 	var soldierMap = {} ; 
 	var monsterMap = {} ;
 	var monsterList = [] ;
+	var animationMap = {} ;
+	var animationList = [] ;
 
 	var common = {
+		createAnimation : function(obj){
+			animationList.push(obj);
+		},
 		clone : function(obj) {
 		    if ( null === obj || "object" !== typeof obj ) 
 		    	return obj;
@@ -53,14 +58,17 @@ var Defender = (function(){
 		    }
 		},
 		initSoldierMap : function(){
-			var fighter = common.createSoldier(0,10,60,150,1,10) ;
-			soldierMap['fighter'] = fighter ;
-
-			var swordman = common.createSoldier(1,30,75,170,1,20) ;
+			var beginner = common.createSoldier(0,10,60,150,1,10,false,5,5,3,2) ;
+			soldierMap['beginner'] = beginner ;
+			
+			/*
+			var swordman = common.createSoldier(1,30,75,170,1,20,false,5) ;
 			var effect = common.createEffect(0,0,1,10,2) ;
 			var atkUp = common.createSkill("atkUp","add atk.",1,[],0,effect) ;
 			swordman.skill.push(atkUp);
 			soldierMap['swordman'] = swordman ;
+			*/
+			
 		},
 		initMonsterMap : function(){
 			var normal = common.createMonster(0,0,330,100,100,3,1);
@@ -95,6 +103,21 @@ var Defender = (function(){
 					gameCtx.font="30px Arial";
 					gameCtx.fillText(this.nowHp+ '/' + this.maxHp ,this.x,this.y-10) ;
 				},
+				isHit : function(data){
+					var atk = data.atk ;
+					var type = roleList[data.id] ;
+					this.nowHp -= atk ;
+					//console.log(animationMap[type+"_hit"]);
+					common.createAnimation({
+						canvas : canvasMap[type+"_hit"] ,
+						x : this.x ,
+						y : this.y ,
+						nowFrame : 0 ,
+						totalFrame : animationMap[type+"_hit"].frames ,
+						width : animationMap[type+"_hit"].width , 
+						height : animationMap[type+"_hit"].height  
+					});
+				},
 				showAll : function(){
 					this.showMonster();
 					this.showHp();
@@ -102,8 +125,19 @@ var Defender = (function(){
 			};
 			return monster
 		},
-		createSoldier : function(id,atk,speed,range,level,transferLevel,isPicked){
+		createSoldier : function(id,atk,speed,range,level,transferLevel,isPicked,hitFrame,standFrame,attackFrame,attackEffectFrame){
 			var soldier = {
+				state : "stand" ,
+				stand : {
+					nowFrame : 0 ,
+					totalFrame : 0 ,
+					canvas : null 
+				} ,
+				attack : {
+					nowFrame : 0 ,
+					totalFrame : 0 ,
+					canvas : null 
+				},
 				id : id || 0 , // role type
 				atk : atk || 0 ,
 				speed : speed || 0 ,  // 1 attack need sec
@@ -116,23 +150,77 @@ var Defender = (function(){
 				point : 0 ,	// remain skill point
 				skill : [] ,
 				atkTimer : speed , 
+				target : [] ,
 				init : function(){
-					this.goalExp = 10 *(0.5+this.level/2) ;
+					this.setAnimationHit();
+					this.setStateCanvas();
 					return this ;
 				},
-				attack : function(x){
+				isAttack : function(x){
 					if ( stage.isGameOver === true || stage.isGameWin === true )
 						return ;
+					if ( this.state === "attack" ){
+						if ( this.attack.effectFrame === this.attack.nowFrame ){
+							for ( var i = 0 ; i < this.target.length ; i ++  ){
+								this.target[i].isHit({id:this.id,atk:this.atk}) ;
+							}
+							this.target = [] ;
+						}
+					}
 					if ( this.atkTimer >= 0 ){
 						this.atkTimer -- ; 
 						return ;
 					} 
 					this.atkTimer = this.speed ;
+					this.attack.timer = 0 ;
 					for ( var i = 0 ; i < monsterList.length ; i ++ ){
 						if ( Math.abs(monsterList[i].x-x) <= this.range ){
-							monsterList[i].nowHp -= this.atk ;
+							this.state = "attack" ;
+							this.target.push(monsterList[i]);
 							return ;
 						}
+					}
+				},
+				setAnimationHit : function(){
+					var img = new Image();
+					var type = roleList[this.id] ;
+					img.src = "img/"+type+"_hit.png" ;
+					img.onload = function(){
+						var width = parseFloat(this.width) / hitFrame ;
+						var height = parseFloat(this.height) ;
+						animationMap[type+'_hit'] = {
+							frames : hitFrame ,
+							width : width ,
+							height : height
+						}
+					}
+				},
+				setStateCanvas : function(){
+					var w = canvasMap[roleList[this.id]+"_stand"].width ;
+					var h = canvasMap[roleList[this.id]+"_stand"].height ;
+					var canvas = canvasMap[roleList[this.id]+"_stand"] ;
+					this.stand = {
+						nowFrame : 0 ,
+						totalFrame : standFrame ,
+						w : w / standFrame ,
+						h : h ,
+						canvas : canvas ,
+						delay : 10 ,
+						timer : 0 
+					}
+
+					var w = canvasMap[roleList[this.id]+"_attack"].width ;
+					var h = canvasMap[roleList[this.id]+"_attack"].height ;
+					var canvas = canvasMap[roleList[this.id]+"_attack"] ;
+					this.attack = {
+						nowFrame : 0 ,
+						totalFrame : attackFrame ,
+						w : w / attackFrame ,
+						h : h ,
+						canvas : canvas ,
+						delay : 10 ,
+						timer : 0 , 
+						effectFrame : attackEffectFrame 
 					}
 				}
 			}.init();
@@ -236,8 +324,8 @@ var Defender = (function(){
 			}
 		},
 		initMySoldierList : function(){
-			mySoldierList.push(common.clone(soldierMap['fighter']));
-			mySoldierList.push(common.clone(soldierMap['swordman']));
+			mySoldierList.push(soldierMap['beginner']);
+			//mySoldierList.push(common.clone(soldierMap['swordman']));
 		},
 		init: function(){
 			SlEEPBAG.canvasAutoResizer.load(function(self){
@@ -250,9 +338,11 @@ var Defender = (function(){
 			gameCtx = gameCanvas.getContext("2d");
 			SlEEPBAG.canvasAutoResizer.setCenter();
 			common.makeAllImage();
+			/*
 			common.initSoldierMap();
 			common.initMonsterMap();
 			common.initMySoldierList();
+			*/
 			//
 			loadPage.init();
 			//
@@ -323,12 +413,15 @@ var Defender = (function(){
 		resetButton : {} ,
 		confirmButton : {} ,
 		init : function(){
+			common.initSoldierMap();
+			common.initMonsterMap();
+			common.initMySoldierList();
 			preStage.isShowChooseSoldier = false ;
 			preStage.isPickSoldier = null ;
 			preStage.initBackground();
 			preStage.initResetButton();
 			preStage.initConfirmButton();
-			preStage.initInvoke();
+			preStage.initInvoke();			
 		},
 		setMouseEvent : function(a, b) {
 	        document.onclick = b;
@@ -452,7 +545,22 @@ var Defender = (function(){
 				if ( preStage.invokeList[i].soldier.id === -1 ){
 					gameCtx.drawImage(canvasMap['invoke'],preStage.invokeList[i].x,preStage.invokeList[i].y);
 				} else {
-					gameCtx.drawImage(canvasMap[common.getRole(preStage.invokeList[i].soldier.id)],preStage.invokeList[i].x,preStage.invokeList[i].y);
+					var state = preStage.invokeList[i].soldier.state ;
+					var nowFrame = preStage.invokeList[i].soldier[state].nowFrame ;
+					var canvas = preStage.invokeList[i].soldier[state].canvas ;
+					var w = preStage.invokeList[i].soldier[state].w ;
+					var h = preStage.invokeList[i].soldier[state].h ;
+					gameCtx.drawImage(canvas,w*nowFrame,0,w,h,preStage.invokeList[i].x,preStage.invokeList[i].y,w,h);
+					if ( preStage.invokeList[i].soldier[state].timer < preStage.invokeList[i].soldier[state].delay  ){
+						preStage.invokeList[i].soldier[state].timer ++ ;
+					} else if ( preStage.invokeList[i].soldier[state].timer >= preStage.invokeList[i].soldier[state].delay  ){
+						preStage.invokeList[i].soldier[state].nowFrame  ++ ;
+						preStage.invokeList[i].soldier[state].timer = 0 ;
+						if ( preStage.invokeList[i].soldier[state].nowFrame >= preStage.invokeList[i].soldier[state].totalFrame ){
+							preStage.invokeList[i].soldier[state].nowFrame = 0 ;
+							preStage.invokeList[i].soldier.state = "stand" ;
+						}
+					}
 				}
 			}
 		},
@@ -502,7 +610,8 @@ var Defender = (function(){
 				if ( preStage.isPickSoldier === i ) {
 					var soldier = preStage.invokeList[i] ;
 					gameCtx.fillText("Level:"+soldier.soldier.level,200,650);
-					gameCtx.fillText("Exp:"+soldier.soldier.nowExp+"/"+soldier.soldier.goalExp,200,700);
+					var exp = Math.floor(soldier.soldier.nowExp);
+					gameCtx.fillText("Exp:"+exp+"/"+soldier.soldier.goalExp,200,700);
 					gameCtx.fillText("Attack:"+soldier.soldier.atk,350,650);
 					gameCtx.fillText("Range:"+soldier.soldier.range,350,700);
 					gameCtx.fillText("Speed:"+soldier.soldier.speed,500,670);
@@ -575,8 +684,8 @@ var Defender = (function(){
 			},
 			setInvokeToSoldier : function(index){
 				preStage.invokeList[preStage.nowPickInvoke].soldier = mySoldierList[index] ;
-				preStage.invokeList[preStage.nowPickInvoke].w = canvasMap[common.getRole(mySoldierList[index].id)].width;
-				preStage.invokeList[preStage.nowPickInvoke].h = canvasMap[common.getRole(mySoldierList[index].id)].height;
+				preStage.invokeList[preStage.nowPickInvoke].w = canvasMap[common.getRole(mySoldierList[index].id)+"_stand"].width;
+				preStage.invokeList[preStage.nowPickInvoke].h = canvasMap[common.getRole(mySoldierList[index].id)+"_stand"].height;
 				mySoldierList[index].isPicked = true ;
 				preStage.init();
 			},
@@ -696,6 +805,16 @@ var Defender = (function(){
 			stage.exp = exp ;
 			stage.expTotal = exp ;
 		},
+		showAnimation : function(){
+			for ( var i = 0 ; i < animationList.length ; i ++ ){
+				gameCtx.drawImage(animationList[i].canvas,animationList[i].nowFrame*animationList[i].width,0,animationList[i].width,animationList[i].height,animationList[i].x,animationList[i].y,animationList[i].width,animationList[i].height);
+				animationList[i].nowFrame ++ ;
+				if ( animationList[i].nowFrame >= animationList[i].totalFrame ){
+					animationList.splice(i, 1);
+					i -- ;
+				}
+			}
+		},
 		showLevelUp : function(index){
 			for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ) {
 				if ( preStage.invokeList[i].soldier.id !== -1 ){
@@ -764,7 +883,7 @@ var Defender = (function(){
 		soldierEvent : function(){
 			for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ){
 				if ( preStage.invokeList[i].soldier.id !== -1 ){
-					preStage.invokeList[i].soldier.attack(preStage.invokeList[i].x);
+					preStage.invokeList[i].soldier.isAttack(preStage.invokeList[i].x);
 				}
 			}
 		},
@@ -822,10 +941,11 @@ var Defender = (function(){
 				stage.soldierEvent();
 				stage.detectGame();
 				stage.showLevelUp();
+				stage.showAnimation();
 			}
 		}
 	}
-
+	
 	window.onload = common.init();
 })();
 
