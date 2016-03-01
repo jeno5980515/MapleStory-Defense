@@ -8,7 +8,7 @@ var Defender = (function(){
 	var IE = "ActiveXObject" in window ;
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
-	var imageList = ["background","beginner_stand","swordman","atkUp","monster_normal","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win","beginner_hit","beginner","beginner_attack","swordman_hit"] ;
+	var imageList = ["background","beginner_stand","swordman","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win","beginner_hit","beginner","beginner_attack","swordman_hit","beginner_attack_effect","snail"] ;
 	var loadImageProgress = 0 ;
 	var imgMap = {} ;
 	var canvasMap = {} ;
@@ -21,9 +21,9 @@ var Defender = (function(){
 	var mouseOver = 'none' ;
 	var nowChooseSoldier ;
 	var roleList = ['beginner','swordman','archer','magician'] ;
-	var monsterIdList = ['monster_normal'];
+	var monsterIdList = ['snail'];
 	var roleDescriptionList = ['beginner','swordman','archer','magician'] ;
-	var monsterDescriptionList = ['monster_normal'] ;
+	var monsterDescriptionList = ['snail'] ;
 	var soldierMap = {} ; 
 	var monsterMap = {} ;
 	var monsterList = [] ;
@@ -58,7 +58,7 @@ var Defender = (function(){
 		    }
 		},
 		initSoldierMap : function(){
-			var beginner = common.createSoldier(0,10,60,150,1,10,false,5,5,3,2) ;
+			var beginner = common.createSoldier(0,10,60,150,1,10,false,5,5,3,2,1,2,-27,7) ;
 			soldierMap['beginner'] = beginner ;
 			
 			/*
@@ -71,14 +71,15 @@ var Defender = (function(){
 			
 		},
 		initMonsterMap : function(){
-			var normal = common.createMonster(0,0,330,100,100,3,1);
-			monsterMap['normal'] = normal ;
+			var snail = common.createMonster(0,0,330,100,100,3,1,[],[],9);
+			monsterMap['snail'] = snail ;
 		},
 		createMonsterSkill : function(){
 
 		},
-		createMonster : function(id,x,y,nowHp,maxHp,def,speed,skill,effect){
+		createMonster : function(id,x,y,nowHp,maxHp,def,speed,skill,effect,moveFrame){
 			var monster = {
+				state : "move" ,
 				id : id || 0 ,
 				x : x || 0 ,
 				y : y || 0 ,
@@ -88,7 +89,16 @@ var Defender = (function(){
 				speed : speed || 0 ,	//per 20ms 
 				skill : skill || [] ,
 				effect : effect || [] ,
-				move : function(){
+				move : {
+					nowFrame : 0 ,
+					totalFrame : moveFrame ,
+					canvas : null 
+				} ,
+				init : function(){
+					this.setStateCanvas();
+					return this ;
+				},
+				isMove : function(){
 					if ( stage.isGameOver === true || stage.isGameWin === true )
 						return ;
 					this.x += this.speed ;
@@ -97,7 +107,28 @@ var Defender = (function(){
 					}
 				},
 				showMonster : function(){
-					gameCtx.drawImage(canvasMap[common.getMonster(monster.id)],this.x,this.y) ;
+
+					//gameCtx.drawImage(canvasMap[common.getMonster(monster.id)],this.x,this.y) ;	
+					
+					var state = this.state ;
+					var nowFrame = this[state].nowFrame ;
+					var totalFrame = this[state].totalFrame ;
+					var canvas = this[state].canvas ;
+					var w = this[state].w ;
+					var h = this[state].h ;
+					console.log(state+" "+nowFrame+" "+totalFrame+" "+canvas+" "+this[state].timer+" "+this[state].delay );
+					gameCtx.drawImage(canvas,w*nowFrame,0,w,h,this.x,this.y,w,h);
+					if ( this[state].timer < this[state].delay  ){
+						this[state].timer ++ ;
+					} else if ( this[state].timer >= this[state].delay  ){
+						this[state].nowFrame  ++ ;
+						this[state].timer = 0 ;
+						if ( this[state].nowFrame >= this[state].totalFrame ){
+							this[state].nowFrame = 0 ;
+							this.state = "move" ;
+						}
+					}
+					
 				},
 				showHp : function(){
 					gameCtx.font="30px Arial";
@@ -107,7 +138,6 @@ var Defender = (function(){
 					var atk = data.atk ;
 					var type = roleList[data.id] ;
 					this.nowHp -= atk ;
-					//console.log(animationMap[type+"_hit"]);
 					common.createAnimation({
 						canvas : canvasMap[type+"_hit"] ,
 						x : this.x ,
@@ -121,11 +151,25 @@ var Defender = (function(){
 				showAll : function(){
 					this.showMonster();
 					this.showHp();
+				},				
+				setStateCanvas : function(){
+					var w = canvasMap[monsterIdList[this.id]+"_move"].width ;
+					var h = canvasMap[monsterIdList[this.id]+"_move"].height ;
+					var canvas = canvasMap[monsterIdList[this.id]+"_move"] ;
+					this.move = {
+						nowFrame : 0 ,
+						totalFrame : moveFrame ,
+						w : w / moveFrame ,
+						h : h ,
+						canvas : canvas ,
+						delay : 10 ,
+						timer : 0 
+					}
 				}
-			};
+			}.init();
 			return monster
 		},
-		createSoldier : function(id,atk,speed,range,level,transferLevel,isPicked,hitFrame,standFrame,attackFrame,attackEffectFrame){
+		createSoldier : function(id,atk,speed,range,level,transferLevel,isPicked,hitFrame,standFrame,attackFrame,attackEffectFrame,attackAnimationFrame,attackAnimationBeginFrame,attackAnimationDx,attackAnimationDy){
 			var soldier = {
 				state : "stand" ,
 				stand : {
@@ -154,17 +198,31 @@ var Defender = (function(){
 				init : function(){
 					this.setAnimationHit();
 					this.setStateCanvas();
+					this.setAnimationAttack();
 					return this ;
 				},
-				isAttack : function(x){
+				isAttack : function(x,y){
 					if ( stage.isGameOver === true || stage.isGameWin === true )
 						return ;
 					if ( this.state === "attack" ){
+						if ( this.attack.animationBeginFrame === this.attack.nowFrame && this.attack.animationBoolean === false ){
+							common.createAnimation({
+								canvas : canvasMap[roleList[this.id]+"_attack_effect"] ,
+								x : x + attackAnimationDx ,
+								y : y + attackAnimationDy ,
+								nowFrame : 0 ,
+								totalFrame : animationMap[roleList[this.id]+"_attack_effect"].frames ,
+								width : animationMap[roleList[this.id]+"_attack_effect"].width , 
+								height : animationMap[roleList[this.id]+"_attack_effect"].height  
+							});
+							this.attack.animationBoolean = true ;
+						}
 						if ( this.attack.effectFrame === this.attack.nowFrame ){
 							for ( var i = 0 ; i < this.target.length ; i ++  ){
 								this.target[i].isHit({id:this.id,atk:this.atk}) ;
 							}
 							this.target = [] ;
+							this.attack.animationBoolean = false ;
 						}
 					}
 					if ( this.atkTimer >= 0 ){
@@ -175,7 +233,7 @@ var Defender = (function(){
 					this.attack.timer = 0 ;
 					for ( var i = 0 ; i < monsterList.length ; i ++ ){
 						if ( Math.abs(monsterList[i].x-x) <= this.range ){
-							this.state = "attack" ;
+							this.state = "attack" ;					
 							this.target.push(monsterList[i]);
 							return ;
 						}
@@ -190,6 +248,20 @@ var Defender = (function(){
 						var height = parseFloat(this.height) ;
 						animationMap[type+'_hit'] = {
 							frames : hitFrame ,
+							width : width ,
+							height : height
+						}
+					}
+				},
+				setAnimationAttack : function(){
+					var img = new Image();
+					var type = roleList[this.id] ;
+					img.src = "img/"+type+"_attack_effect.png" ;
+					img.onload = function(){
+						var width = parseFloat(this.width) / attackAnimationFrame ;
+						var height = parseFloat(this.height) ;
+						animationMap[type+'_attack_effect'] = {
+							frames : attackAnimationFrame ,
 							width : width ,
 							height : height
 						}
@@ -220,7 +292,10 @@ var Defender = (function(){
 						canvas : canvas ,
 						delay : 10 ,
 						timer : 0 , 
-						effectFrame : attackEffectFrame 
+						effectFrame : attackEffectFrame ,
+						animationFrames : attackAnimationFrame ,
+						animationBeginFrame : attackAnimationBeginFrame ,
+						animationBoolean : false 
 					}
 				}
 			}.init();
@@ -875,7 +950,7 @@ var Defender = (function(){
 						stage.isGameWin = true ;
 					}
 				} else {
-					monsterList[i].move();
+					monsterList[i].isMove();
 					monsterList[i].showAll();
 				}
 			}
@@ -883,7 +958,7 @@ var Defender = (function(){
 		soldierEvent : function(){
 			for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ){
 				if ( preStage.invokeList[i].soldier.id !== -1 ){
-					preStage.invokeList[i].soldier.isAttack(preStage.invokeList[i].x);
+					preStage.invokeList[i].soldier.isAttack(preStage.invokeList[i].x,preStage.invokeList[i].y);
 				}
 			}
 		},
@@ -914,8 +989,7 @@ var Defender = (function(){
 		stage1 : {
 			initMonsterList : function(){
 				for ( var i = 0 ; i < 1 ; i ++ ){
-					var normal = common.clone(monsterMap['normal']);
-					stage.monsterAllList.push(normal);
+					stage.monsterAllList.push(monsterMap['snail']);
 				}
 			},
 			init : function(){
