@@ -1,0 +1,30 @@
+<i>
+  <i image="bsc_0.png" delay="100" x="0" y="0"/>
+  <i image="bsc_1.png" delay="100" x="0" y="0"/>
+  <i image="bsc_2.png" delay="100" x="0" y="0"/>
+  <i image="bsc_3.png" delay="100" x="0" y="0"/>
+  <i image="bsc_4.png" delay="100" x="0" y="0"/>
+  <i image="enH0_0.png" delay="100" x="0" y="-40"/>
+  <i image="enH0_1.png" delay="100" x="0" y="-40"/>
+  <i image="enH0_2.png" delay="100" x="0" y="-40"/>
+  <i image="enH1_0.png" delay="100" x="0" y="0"/>
+  <i image="enH1_1.png" delay="100" x="0" y="0"/>
+  <i image="enH1_2.png" delay="100" x="0" y="0"/>
+  <i image="enH1_3.png" delay="100" x="0" y="0"/>
+  <i image="enV0_0.png" delay="100" x="-33" y="0"/>
+  <i image="enV0_1.png" delay="100" x="-33" y="0"/>
+  <i image="enV0_2.png" delay="100" x="-33" y="0"/>
+  <i image="enV1_0.png" delay="100" x="0" y="0"/>
+  <i image="enV1_1.png" delay="100" x="0" y="0"/>
+  <i image="enV1_2.png" delay="100" x="0" y="0"/>
+  <i image="edU_0.png" delay="100" x="-29" y="-38"/>
+  <i image="edU_1.png" delay="100" x="-29" y="-38"/>
+  <i image="edD_0.png" delay="100" x="-27" y="0"/>
+  <i image="edD_1.png" delay="100" x="-27" y="0"/>
+  <i image="slLU_0.png" delay="100" x="-90" y="-91"/>
+  <i image="slRU_0.png" delay="100" x="0" y="-91"/>
+  <i image="slLD_0.png" delay="100" x="-90" y="0"/>
+  <i image="slLD_1.png" delay="100" x="-90" y="0"/>
+  <i image="slRD_0.png" delay="100" x="0" y="0"/>
+  <i image="slRD_1.png" delay="100" x="0" y="0"/>
+</i>
