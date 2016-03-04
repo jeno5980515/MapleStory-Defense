@@ -9,7 +9,7 @@ var Defender = (function(){
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
 	var imageList = ["background","beginner_stand","swordman","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win","beginner_hit","beginner","beginner_attack","swordman_hit","beginner_attack_effect","snail","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand",
-	"archer","archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill1"] ;
+	"archer","archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0"] ;
 	var loadImageProgress = 0 ;
 	var imgMap = {} ;
 	var canvasMap = {} ;
@@ -88,7 +88,51 @@ var Defender = (function(){
 				}						
 			}
 		},
+		createSkillFunction : function(data){
+			var createEffectFunction = data.createEffectFunction ;
+			var createHitFunction = data.createHitFunction ;
+			var getTargetFunction = data.getTargetFunction ;
+			var s = data.state ;
+			var f = function(x,y,range,state,canvas,atk){
+				if ( state === s ){
+					createEffectFunction(x,y,range,state,canvas,this.target);
+					createHitFunction(x,y,range,state,canvas,this.target,atk) ;
+					if ( canvas.timer <= canvas.delay ){
+						canvas.timer ++ ;
+						return { state : s , done : false } ;
+					} else {
+						canvas.timer = 0 ;
+						canvas.nowFrame ++ ;
+						if ( canvas.nowFrame >= canvas.totalFrame ){
+							canvas.nowFrame = 0 ;								
+							this.target = [] ;
+							for ( var i = 0 ; i < canvas.animationBoolean.length ; i ++  ){
+								canvas.animationBoolean[i] = false ;
+								canvas.effectBoolean[i] = false ;
+							}
+							this.timer = 0 ;
+							return { state : "stand" , done : true } ;
+						} else {
+							return { state : s , done : false } ;
+						}
+					}
+				} else if ( state === "stand" && this.timer >= this.speed ){
+					getTargetFunction(x,y,range,state,canvas,this.target);
+					if ( this.target.length !== 0 ){
+						return { state : s , done : false } ;
+					} else {
+						return { state : "stand" , done : false } ;
+					}
+				} else {
+					if ( this.timer < this.speed )
+						this.timer ++ ;
+					return { state : "stand" , done : false } ;
+				}
+			}
+			return f ;
+		},
 		initSoldierMap : function(){
+
 			var beginner = common.createSoldier({
 				id : 0,
 				atk : 15,
@@ -103,10 +147,118 @@ var Defender = (function(){
 				attackAnimationFrame: 1,
 				attackAnimationBeginFrame:2,
 				attackAnimationDx:-27,
-				attackAnimationDy:7
+				attackAnimationDy:7 
 			}) ;
 			soldierMap['beginner'] = beginner ;
+			var f = common.createSkillFunction({
+				state : "doubleArrow" ,
+				createEffectFunction : function(x,y,range,state,canvas){
+					for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
+						if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
+							common.createAnimation({
+								canvas : canvasMap["archer_skill0_effect"] ,
+								x : x + canvas.attackEffectDx  ,
+								y : y + canvas.attackEffectDy ,
+								nowFrame : 0 ,
+								timer : 0 ,
+								delay : 5 ,
+								totalFrame : 1 ,
+								width : canvasMap["archer_skill0_effect"].width  , 
+								height : canvasMap["archer_skill0_effect"].height  
+							});
+							canvas.animationBoolean[i] = true ;
+						}
+					}
+				} ,
+				createHitFunction : function(x,y,range,state,canvas,target,atk){
+					for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
+						if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
+							target[i].isHit({id:-1,canvas:canvasMap["archer_skill0_hit"],atk:atk,dx:canvas.attackAnimationDx,dy:canvas.attackAnimationDy,totalFrame:6,width:canvasMap["archer_skill0_hit"].width/6,height:canvasMap["archer_skill0_hit"].height}) ;
+							canvas.effectBoolean[i] = true ;
+						}
+					}
+				},
+				getTargetFunction : function(x,y,range,state,canvas,target){
+					var countMax = 2 , count = 0 ;
+					for ( var i = 0 ; i < monsterList.length && count < countMax ; i ++ ){
+						if ( Math.abs(monsterList[i].x-x) <= range && monsterList[i].hitAble === true ){
+							target.push(monsterList[i]);
+							count ++ ;
+							i = -1 ;
+						} 
+					}
+				}
+			});
+			var doubleArrow = common.createSkill({
+				name : "Double Arrow" ,
+				needLevel : 1 ,
+				needSkill : [] ,
+				nowLevel : 1 ,
+				effect : [] ,
+				speed : 200 ,
+				timer : 200 ,
+				target : [] ,
+				type : "active" ,				
+				canvas : {
+					state : "doubleArrow" ,
+					w : canvasMap["archer_skill0"].width / 6 ,
+					h : canvasMap["archer_skill0"].height ,
+					canvas : canvasMap["archer_skill0"] ,
+					nowFrame : 0 ,
+					totalFrame : 6 ,
+					delay : 5 ,
+					timer : 0 ,
+					effectFrame : [2,5] ,
+					effectBoolean : [false,false],
+					animationFrames : 0 ,
+					animationBeginFrame : [2,5] ,
+					animationBoolean : [false,false] ,
+					attackEffectDx : -56 ,
+					attackEffectDy : 47 ,
+					attackAnimationDx : 0 ,
+					attackAnimationDy : 27  
+				} , 
+				f : common.createSkillFunction({
+					state : "doubleArrow" ,
+					createEffectFunction : function(x,y,range,state,canvas){
+						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
+							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
+								common.createAnimation({
+									canvas : canvasMap["archer_skill0_effect"] ,
+									x : x + canvas.attackEffectDx  ,
+									y : y + canvas.attackEffectDy ,
+									nowFrame : 0 ,
+									timer : 0 ,
+									delay : 5 ,
+									totalFrame : 1 ,
+									width : canvasMap["archer_skill0_effect"].width  , 
+									height : canvasMap["archer_skill0_effect"].height  
+								});
+								canvas.animationBoolean[i] = true ;
+							}
+						}
+					} ,
+					createHitFunction : function(x,y,range,state,canvas,target,atk){
+						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
+							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
+								target[i].isHit({id:-1,canvas:canvasMap["archer_skill0_hit"],atk:atk,dx:canvas.attackAnimationDx,dy:canvas.attackAnimationDy,totalFrame:6,width:canvasMap["archer_skill0_hit"].width/6,height:canvasMap["archer_skill0_hit"].height}) ;
+								canvas.effectBoolean[i] = true ;
+							}
+						}
+					},
+					getTargetFunction : function(x,y,range,state,canvas,target){
+						var countMax = 2 , count = 0 ;
+						for ( var i = 0 ; i < monsterList.length && count < countMax ; i ++ ){
+							if ( Math.abs(monsterList[i].x-x) <= range && monsterList[i].hitAble === true ){
+								target.push(monsterList[i]);
+								count ++ ;
+								i = -1 ;
+							} 
+						}
+					}
+				}) 
 
+			}) ;
 			var archer = common.createSoldier({
 				id : 1,
 				atk : 30,
@@ -123,16 +275,10 @@ var Defender = (function(){
 				attackAnimationFrame: 1,
 				attackAnimationBeginFrame:1,
 				attackAnimationDx:-50,
-				attackAnimationDy: 45
+				attackAnimationDy: 45,
+				skill : [doubleArrow] 
 			}) ;
 			soldierMap['archer'] = archer ;
-			/*
-			var swordman = common.createSoldier(1,30,75,170,1,20,false,5) ;
-			var effect = common.createEffect(0,0,1,10,2) ;
-			var atkUp = common.createSkill("atkUp","add atk.",1,[],0,effect) ;
-			swordman.skill.push(atkUp);
-			soldierMap['swordman'] = swordman ;
-			*/
 			
 		},
 		initMonsterMap : function(){
@@ -186,7 +332,7 @@ var Defender = (function(){
 							dy : -1 ,
 							dx : 0 , 
 							nowFrame : 0 ,
-							delay : 20 ,
+							delay : 30 ,
 							timer : 0 ,
 							totalFrame : 1 ,
 							width : canvasMap["number_damage_"+d[i]].width , 
@@ -244,19 +390,19 @@ var Defender = (function(){
 					var dx = data.dx || 0 , dy = data.dy || 0 ;
 					this.state = "hit" ;
 					var atk = data.atk ;
-					var type = roleList[data.id] ;
+					var type = roleList[data.id] ; 
 					var damage = atk - this.def ;
 					this.nowHp -= damage ;
 					common.createAnimation({
-						canvas : canvasMap[type+"_hit"] ,
+						canvas : canvasMap[type+"_hit"] || data.canvas,
 						x : this.x + dx ,
 						y : this.y - 45 + dy ,
 						nowFrame : 0 ,
-						delay : 5 ,
+						delay : data.delay || 5 ,
 						timer : 0 ,
-						totalFrame : animationMap[type+"_hit"].frames ,
-						width : animationMap[type+"_hit"].width , 
-						height : animationMap[type+"_hit"].height  
+						totalFrame : animationMap[type+"_hit"] !== undefined ? animationMap[type+"_hit"].frames : data.totalFrame ,
+						width : animationMap[type+"_hit"] !== undefined ? animationMap[type+"_hit"].width : data.width , 
+						height : animationMap[type+"_hit"] !== undefined ? animationMap[type+"_hit"].height : data.height 
 					});
 					this.showNumberDamage(damage) ;
 				},
@@ -332,12 +478,13 @@ var Defender = (function(){
 				goalExp : 0 ,
 				isPicked : data.isPicked || false ,
 				point : 0 ,	// remain skill point
-				skill : [] ,
+				skill : data.skill || [] ,
 				atkTimer : 0 , 
 				target : [] ,
 				attackEffectDx : data.attackEffectDx || 0,
 				attackEffectDy : data.attackEffectDy || 0,
 				hitFrame : data.hitFrame ,
+				fMap : {} ,
 				init : function(){
 					this.setAnimationHit();
 					this.setStateCanvas();
@@ -347,6 +494,19 @@ var Defender = (function(){
 				isAttack : function(x,y){
 					if ( stage.isGameOver === true || stage.isGameWin === true )
 						return ;
+					for ( var i = 0 ; i < this.skill.length ; i ++ ){
+						if ( ( this.state === "stand" || this.state === this.skill[i].canvas.state ) && this.atkTimer <= 0 ){
+							var result = this.skill[i].f(x,y,this.range,this.state,this[this.state],this.atk) ;
+							var state = result.state ;
+							var done = result.done ;
+							if ( state === "stand" && done === true ){
+								this.atkTimer = this.speed ;
+							}
+							this.state = state ;
+						} else {
+							var result = this.skill[i].f(x,y,this.range,"null",this[this.state],this.atk) ;
+						}
+					}
 					if ( this.state === "attack" ){
 						if ( this.attack.animationBeginFrame === this.attack.nowFrame && this.attack.animationBoolean === false ){
 							common.createAnimation({
@@ -369,20 +529,34 @@ var Defender = (function(){
 							this.target = [] ;
 							this.attack.animationBoolean = false ;
 						}
+					} 
+					if ( this.state === "stand" || this.state === "attack" ){
+						if ( this[this.state].timer < this[this.state].delay  ){
+							this[this.state].timer ++ ;
+						} else if ( this[this.state].timer >= this[this.state].delay  ){
+							this[this.state].nowFrame  ++ ;
+							this[this.state].timer = 0 ;
+							if ( this[this.state].nowFrame >= this[this.state].totalFrame ){
+								this[this.state].nowFrame = 0 ;
+								this.state = "stand" ;
+							}
+						}
 					}
-					if ( this.atkTimer >= 0 ){
+					if ( this.state !== "attack" && this.atkTimer >= 0 ){
 						this.atkTimer -- ; 
 						return ;
 					} 
-					for ( var i = 0 ; i < monsterList.length ; i ++ ){
-						if ( Math.abs(monsterList[i].x-x) <= this.range && monsterList[i].hitAble === true ){
-							this.atkTimer = this.speed ;
-							this.attack.timer = 0 ;
-							this.state = "attack" ;					
-							this.target.push(monsterList[i]);
-							return ;
-						}
-					}
+					if ( this.state === "stand" ){
+						for ( var i = 0 ; i < monsterList.length ; i ++ ){
+							if ( Math.abs(monsterList[i].x-x) <= this.range && monsterList[i].hitAble === true ){
+								this.atkTimer = this.speed ;
+								this.attack.timer = 0 ;
+								this.state = "attack" ;					
+								this.target.push(monsterList[i]);
+								return ;
+							}
+						}	
+					}				
 				},
 				setAnimationHit : function(){
 					var img = new Image();
@@ -442,6 +616,9 @@ var Defender = (function(){
 						animationBeginFrame : data.attackAnimationBeginFrame ,
 						animationBoolean : false 
 					}
+					for ( var i = 0 ; i < this.skill.length ; i ++ ){
+						this[this.skill[i].canvas.state] = this.skill[i].canvas ;
+					}
 				}
 			}.init();
 			return soldier ;
@@ -456,14 +633,21 @@ var Defender = (function(){
 			}
 			return effect ;
 		},
-		createSkill : function(name,description,needLevel,needSkill,nowLevel,effect){
+		createSkill : function(data){
 			var skill = {
-				name : name || "" ,
-				description : description || "" ,
-				needLevel : needLevel || 1 ,
-				needSkill : needSkill || [] ,
-				nowLevel : nowLevel || 0 ,
-				effect : effect || [] 
+				name : data.name || "" ,
+				description : data.description || "" ,
+				state : data.state || "" ,
+				needLevel : data.needLevel || 1 ,
+				needSkill : data.needSkill || [] ,
+				nowLevel : data.nowLevel || 0 ,
+				effect : data.effect || [] ,
+				type : data.type || "passive" ,
+				f : data.f ,
+				timer : data.timer || 0 ,
+				speed : data.speed || 0 ,
+				target : data.target || [] ,
+				canvas : data.canvas || null 
 			}
 			return skill ;
 		},
@@ -676,13 +860,17 @@ var Defender = (function(){
 			nowPage = nowStage ;
 		},
 		setMouseEnterInvokeOver: function(index){
-			document.body.style.cursor = "pointer" ;
-			mouseOver = 'invoke' + index ;
+			if ( isGameStart === false ){
+				document.body.style.cursor = "pointer" ;
+				mouseOver = 'invoke' + index ;
+			}
 		},
 		setMouseEnterInvokeClick :function(index){
-			preStage.pickSoldier.init();
-			preStage.nowPickInvoke = index ;
-			document.body.style.cursor = "default" ;
+			if ( isGameStart === false ){
+				preStage.pickSoldier.init();
+				preStage.nowPickInvoke = index ;
+				document.body.style.cursor = "default" ;
+			}
 		},
 		setMouseEnterResetButtonOver: function(){
 			if ( isGameStart === false ){
@@ -783,11 +971,12 @@ var Defender = (function(){
 				} else {
 					gameCtx.drawImage(canvasMap['bg_'+nowStage+"_stand"],preStage.invokeList[i].x,preStage.invokeList[i].y+57);
 					var state = preStage.invokeList[i].soldier.state ;
-					var nowFrame = preStage.invokeList[i].soldier[state].nowFrame ;
+					var nowFrame = preStage.invokeList[i].soldier[state].nowFrame ; 
 					var canvas = preStage.invokeList[i].soldier[state].canvas ;
 					var w = preStage.invokeList[i].soldier[state].w ;
 					var h = preStage.invokeList[i].soldier[state].h ;
 					gameCtx.drawImage(canvas,w*nowFrame,0,w,h,preStage.invokeList[i].x,preStage.invokeList[i].y,w,h);
+					/*
 					if ( preStage.invokeList[i].soldier[state].timer < preStage.invokeList[i].soldier[state].delay  ){
 						preStage.invokeList[i].soldier[state].timer ++ ;
 					} else if ( preStage.invokeList[i].soldier[state].timer >= preStage.invokeList[i].soldier[state].delay  ){
@@ -798,6 +987,7 @@ var Defender = (function(){
 							preStage.invokeList[i].soldier.state = "stand" ;
 						}
 					}
+					*/
 				}
 			}
 			if ( isGameStart === false ){
@@ -880,7 +1070,15 @@ var Defender = (function(){
 						gameCtx.fillText("Skill:",650,670);
 						for ( var i = 0 ; i < soldier.soldier.skill.length ; i ++ ){
 							var skill = soldier.soldier.skill[i] ;
-							gameCtx.drawImage(canvasMap[skill.name],650+i*100,670) ;
+							var w = canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"].width / 3 ;
+							var h = canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"].height ;
+							if ( skill.nowLevel <= 0 ){
+								gameCtx.drawImage(canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"],w*2,0,w,h,650+i*100,670,w,h) ;
+							} else if ( skill.timer === skill.speed ){
+								gameCtx.drawImage(canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"],w*1,0,w,h,650+i*100,670,w,h) ;
+							} else {
+								gameCtx.drawImage(canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"],w*0,0,w,h,650+i*100,670,w,h) ;
+							}
 						}
 					}
 					return; ; 
@@ -914,6 +1112,7 @@ var Defender = (function(){
 				preStage.showSoldierOver();
 			} 
 			preStage.showSoldierRange();
+			stage.soldierEvent();
 		},
 		showDescription : function(){
 			gameCtx.drawImage(canvasMap['description'],0,600);
