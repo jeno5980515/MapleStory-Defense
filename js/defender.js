@@ -8,7 +8,7 @@ var Defender = (function(){
 	var IE = "ActiveXObject" in window ;
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
-	var imageList = ["background","beginner_stand","swordman","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win","beginner_hit","beginner","beginner_attack","swordman_hit","beginner_attack_effect","snail","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand",
+	var imageList = ["background","beginner_stand","swordman","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win","beginner_hit","beginner","beginner_attack","swordman_hit","beginner_attack_effect","snail","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2",
 	"archer","archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0"] ;
 	var loadImageProgress = 0 ;
 	var imgMap = {} ;
@@ -87,16 +87,32 @@ var Defender = (function(){
 					height : h 
 				}						
 			}
+			for ( var i = 0 ; i < 10 ; i ++ ){
+				var numberCanvas = canvasMap["number_damage2"] ;
+				var canvas = document.createElement("canvas") ;
+				var ctx = canvas.getContext('2d');
+				var w = numberCanvas.width / 10  ;
+				var h = numberCanvas.height ;
+				canvas.width = w ;
+				canvas.height = h ;
+				ctx.drawImage(numberCanvas,w*i,0,w,h,0,0,w,h);
+				canvasMap["number_damage2_"+i] = canvas ;
+				animationMap['number_damage2_'+i] = {
+					frames : 1 ,
+					width : w ,
+					height : h 
+				}						
+			}
 		},
-		createSkillFunction : function(data){
+		createSkillFunctionActive : function(data){
 			var createEffectFunction = data.createEffectFunction ;
 			var createHitFunction = data.createHitFunction ;
 			var getTargetFunction = data.getTargetFunction ;
 			var s = data.state ;
-			var f = function(x,y,range,state,canvas,atk){
+			var f = function(x,y,range,state,canvas,atk,effect){
 				if ( state === s ){
 					createEffectFunction(x,y,range,state,canvas,this.target);
-					createHitFunction(x,y,range,state,canvas,this.target,atk) ;
+					createHitFunction(x,y,range,state,canvas,this.target,atk,effect) ;
 					if ( canvas.timer <= canvas.delay ){
 						canvas.timer ++ ;
 						return { state : s , done : false } ;
@@ -150,45 +166,7 @@ var Defender = (function(){
 				attackAnimationDy:7 
 			}) ;
 			soldierMap['beginner'] = beginner ;
-			var f = common.createSkillFunction({
-				state : "doubleArrow" ,
-				createEffectFunction : function(x,y,range,state,canvas){
-					for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
-						if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
-							common.createAnimation({
-								canvas : canvasMap["archer_skill0_effect"] ,
-								x : x + canvas.attackEffectDx  ,
-								y : y + canvas.attackEffectDy ,
-								nowFrame : 0 ,
-								timer : 0 ,
-								delay : 5 ,
-								totalFrame : 1 ,
-								width : canvasMap["archer_skill0_effect"].width  , 
-								height : canvasMap["archer_skill0_effect"].height  
-							});
-							canvas.animationBoolean[i] = true ;
-						}
-					}
-				} ,
-				createHitFunction : function(x,y,range,state,canvas,target,atk){
-					for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
-						if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
-							target[i].isHit({id:-1,canvas:canvasMap["archer_skill0_hit"],atk:atk,dx:canvas.attackAnimationDx,dy:canvas.attackAnimationDy,totalFrame:6,width:canvasMap["archer_skill0_hit"].width/6,height:canvasMap["archer_skill0_hit"].height}) ;
-							canvas.effectBoolean[i] = true ;
-						}
-					}
-				},
-				getTargetFunction : function(x,y,range,state,canvas,target){
-					var countMax = 2 , count = 0 ;
-					for ( var i = 0 ; i < monsterList.length && count < countMax ; i ++ ){
-						if ( Math.abs(monsterList[i].x-x) <= range && monsterList[i].hitAble === true ){
-							target.push(monsterList[i]);
-							count ++ ;
-							i = -1 ;
-						} 
-					}
-				}
-			});
+
 			var doubleArrow = common.createSkill({
 				name : "Double Arrow" ,
 				needLevel : 1 ,
@@ -218,7 +196,7 @@ var Defender = (function(){
 					attackAnimationDx : 0 ,
 					attackAnimationDy : 27  
 				} , 
-				f : common.createSkillFunction({
+				f : common.createSkillFunctionActive({
 					state : "doubleArrow" ,
 					createEffectFunction : function(x,y,range,state,canvas){
 						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
@@ -238,10 +216,14 @@ var Defender = (function(){
 							}
 						}
 					} ,
-					createHitFunction : function(x,y,range,state,canvas,target,atk){
+					createHitFunction : function(x,y,range,state,canvas,target,atk,effect){
 						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
 							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
-								target[i].isHit({id:-1,canvas:canvasMap["archer_skill0_hit"],atk:atk,dx:canvas.attackAnimationDx,dy:canvas.attackAnimationDy,totalFrame:6,width:canvasMap["archer_skill0_hit"].width/6,height:canvasMap["archer_skill0_hit"].height}) ;
+								var atkSum = { result : atk - target[i].def , state : [] } ;
+								for ( var j = 0 ; j < effect.length ; j ++ ){
+									effect[j].f(atkSum);
+								}
+								target[i].isHit({id:-1,canvas:canvasMap["archer_skill0_hit"],atk:atkSum,dx:canvas.attackAnimationDx,dy:canvas.attackAnimationDy,totalFrame:6,width:canvasMap["archer_skill0_hit"].width/6,height:canvasMap["archer_skill0_hit"].height}) ;
 								canvas.effectBoolean[i] = true ;
 							}
 						}
@@ -259,6 +241,33 @@ var Defender = (function(){
 				}) 
 
 			}) ;
+
+			var criticalArrow = common.createSkill({
+				name : "Critical Arrow" ,
+				needLevel : 1 ,
+				needSkill : [] ,
+				nowLevel : 1 ,
+				effect : [] ,
+				target : "enemy" ,
+				type : "passive" ,				
+				probability : 0.3 , 
+				ratio : 2 ,	
+				f : function(d){
+					var r = Math.random();
+					if ( r < this.probability ){
+						d.result *= this.ratio ;
+						d.state.push("critical") ;
+					} else {
+						return ;
+					}
+				},
+				init : function(effect){
+					effect.push(this) ;
+					this.isInit = true ;
+				}
+
+			}) ;
+
 			var archer = common.createSoldier({
 				id : 1,
 				atk : 30,
@@ -276,7 +285,7 @@ var Defender = (function(){
 				attackAnimationBeginFrame:1,
 				attackAnimationDx:-50,
 				attackAnimationDy: 45,
-				skill : [doubleArrow] 
+				skill : [doubleArrow,criticalArrow] 
 			}) ;
 			soldierMap['archer'] = archer ;
 			
@@ -320,27 +329,48 @@ var Defender = (function(){
 					this.setStateCanvas();
 					return this ;
 				},
-				showNumberDamage : function(damage){
+				showNumberDamage : function(damage,c){
 					var d = damage.toString();
 					var dx = 0 ;
 					var dy = 0 ;
-					for ( var i = 0 ; i < d.length ; i ++ ){
-						common.createAnimation({
-							canvas : canvasMap["number_damage_"+d[i]] ,
-							x : this.x + dx ,
-							y : this.y + dy - 30 ,
-							dy : -1 ,
-							dx : 0 , 
-							nowFrame : 0 ,
-							delay : 30 ,
-							timer : 0 ,
-							totalFrame : 1 ,
-							width : canvasMap["number_damage_"+d[i]].width , 
-							height : canvasMap["number_damage_"+d[i]].height  
-						});
-						dx += 30 ;
-						dy /= 4 ;
-						dy = (1 - dy) * 4  ;
+					if ( c === false ){
+						for ( var i = 0 ; i < d.length ; i ++ ){
+							common.createAnimation({
+								canvas : canvasMap["number_damage_"+d[i]] ,
+								x : this.x + dx ,
+								y : this.y + dy - 30 ,
+								dy : -1 ,
+								dx : 0 , 
+								nowFrame : 0 ,
+								delay : 30 ,
+								timer : 0 ,
+								totalFrame : 1 ,
+								width : canvasMap["number_damage_"+d[i]].width , 
+								height : canvasMap["number_damage_"+d[i]].height  
+							});
+							dx += 30 ;
+							dy /= 4 ;
+							dy = (1 - dy) * 4  ;
+						}
+					} else {
+						for ( var i = 0 ; i < d.length ; i ++ ){
+							common.createAnimation({
+								canvas : canvasMap["number_damage2_"+d[i]] ,
+								x : this.x + dx ,
+								y : this.y + dy - 30 ,
+								dy : -1 ,
+								dx : 0 , 
+								nowFrame : 0 ,
+								delay : 30 ,
+								timer : 0 ,
+								totalFrame : 1 ,
+								width : canvasMap["number_damage2_"+d[i]].width , 
+								height : canvasMap["number_damage2_"+d[i]].height  
+							});
+							dx += 30 ;
+							dy /= 4 ;
+							dy = (1 - dy) * 4  ;
+						}		
 					}
 					
 				},
@@ -389,9 +419,17 @@ var Defender = (function(){
 				isHit : function(data){
 					var dx = data.dx || 0 , dy = data.dy || 0 ;
 					this.state = "hit" ;
-					var atk = data.atk ;
+					var atk = data.atk.result ;
+					var state = data.atk.state ;
+					var c = false ;
+					for ( var i = 0 ; i < state.length ; i ++ ){
+						if ( state[i] === "critical" ){
+							c = true ;
+							break ;
+						} 
+					}
 					var type = roleList[data.id] ; 
-					var damage = atk - this.def ;
+					var damage = atk  ;
 					this.nowHp -= damage ;
 					common.createAnimation({
 						canvas : canvasMap[type+"_hit"] || data.canvas,
@@ -404,7 +442,7 @@ var Defender = (function(){
 						width : animationMap[type+"_hit"] !== undefined ? animationMap[type+"_hit"].width : data.width , 
 						height : animationMap[type+"_hit"] !== undefined ? animationMap[type+"_hit"].height : data.height 
 					});
-					this.showNumberDamage(damage) ;
+					this.showNumberDamage(damage,c) ;
 				},
 				showAll : function(){
 					this.showMonster();
@@ -484,7 +522,7 @@ var Defender = (function(){
 				attackEffectDx : data.attackEffectDx || 0,
 				attackEffectDy : data.attackEffectDy || 0,
 				hitFrame : data.hitFrame ,
-				fMap : {} ,
+				effect : [] ,
 				init : function(){
 					this.setAnimationHit();
 					this.setStateCanvas();
@@ -495,14 +533,19 @@ var Defender = (function(){
 					if ( stage.isGameOver === true || stage.isGameWin === true )
 						return ;
 					for ( var i = 0 ; i < this.skill.length ; i ++ ){
-						if ( ( this.state === "stand" || this.state === this.skill[i].canvas.state ) && this.atkTimer <= 0 ){
-							var result = this.skill[i].f(x,y,this.range,this.state,this[this.state],this.atk) ;
+						if (  this.skill[i].type === "active" && ( this.state === "stand" || this.state === this.skill[i].canvas.state ) && this.atkTimer <= 0 ){
+
+							var result = this.skill[i].f(x,y,this.range,this.state,this[this.state],this.atk,this.effect) ;
 							var state = result.state ;
 							var done = result.done ;
 							if ( state === "stand" && done === true ){
 								this.atkTimer = this.speed ;
 							}
 							this.state = state ;
+						} else if ( this.skill[i].type === "passive" ){
+							if ( this.skill[i].isInit === false ){
+								this.skill[i].init(this.effect);
+							}
 						} else {
 							var result = this.skill[i].f(x,y,this.range,"null",this[this.state],this.atk) ;
 						}
@@ -524,7 +567,11 @@ var Defender = (function(){
 						}
 						if ( this.attack.effectFrame === this.attack.nowFrame ){
 							for ( var i = 0 ; i < this.target.length ; i ++  ){
-								this.target[i].isHit({id:this.id,atk:this.atk,dx:this.attackEffectDx,dy:this.attackEffectDy}) ;
+								var atkSum = { result : this.atk - this.target[i].def , state : [] } ;
+								for ( var j = 0 ; j < this.effect.length ; j ++ ){
+									this.effect[j].f(atkSum);
+								}
+								this.target[i].isHit({id:this.id,atk:atkSum,dx:this.attackEffectDx,dy:this.attackEffectDy}) ;
 							}
 							this.target = [] ;
 							this.attack.animationBoolean = false ;
@@ -617,19 +664,19 @@ var Defender = (function(){
 						animationBoolean : false 
 					}
 					for ( var i = 0 ; i < this.skill.length ; i ++ ){
-						this[this.skill[i].canvas.state] = this.skill[i].canvas ;
+						if ( this.skill[i].type === "active")
+							this[this.skill[i].canvas.state] = this.skill[i].canvas ;
 					}
 				}
 			}.init();
 			return soldier ;
 		},
-		createEffect : function(type,target,valueType,value,plus){
+		createEffect : function(data){
 			var effect = {
-				type : type || 0 ,
-				target : target || 0 ,
-				valueType : valueType || 0 ,
-				value : value || 0 ,
-				plus : plus || 0 
+				target : data.target || 0 ,
+				probability : data.probability || 1 ,
+				ratio : data.ratio || 1 ,
+				f : data.f 
 			}
 			return effect ;
 		},
@@ -647,7 +694,14 @@ var Defender = (function(){
 				timer : data.timer || 0 ,
 				speed : data.speed || 0 ,
 				target : data.target || [] ,
-				canvas : data.canvas || null 
+				isInit : false ,
+				ratio : data.ratio || 1 ,
+				probability : data.probability || 1 ,
+			}
+			if ( data.canvas !== undefined ){
+				skill["canvas"] = data.canvas ;
+			} else {
+				skill["init"] = data.init ;
 			}
 			return skill ;
 		},
@@ -829,7 +883,7 @@ var Defender = (function(){
 			preStage.initBackground();
 			preStage.initResetButton();
 			preStage.initConfirmButton();
-			preStage.initInvoke();			
+			preStage.initInvoke();	
 		},
 		setMouseEvent : function(a, b) {
 	        document.onclick = b;
@@ -1086,12 +1140,32 @@ var Defender = (function(){
 			}
 		},
 		showSoldierOver : function(){
+
 			for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ){
 				if ( mouseOver === 'soldier' + i ) {
 					var soldier = preStage.invokeList[i] ;
-					gameCtx.fillText(common.getRole(soldier.soldier.id),50,650);
-					gameCtx.fillText(roleDescriptionList[soldier.soldier.id],50,700);
-					return ; ; 
+					gameCtx.fillText("Level:"+soldier.soldier.level,200,650);
+					var exp = Math.floor(soldier.soldier.nowExp);
+					gameCtx.fillText("Exp:"+exp+"/"+soldier.soldier.goalExp,200,700);
+					gameCtx.fillText("Attack:"+soldier.soldier.atk,350,650);
+					gameCtx.fillText("Range:"+soldier.soldier.range,350,700);
+					gameCtx.fillText("Speed:"+soldier.soldier.speed,500,670);
+					if ( soldier.soldier.skill.length !== 0 ){
+						gameCtx.fillText("Skill:",650,670);
+						for ( var i = 0 ; i < soldier.soldier.skill.length ; i ++ ){
+							var skill = soldier.soldier.skill[i] ;
+							var w = canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"].width / 3 ;
+							var h = canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"].height ;
+							if ( skill.nowLevel <= 0 ){
+								gameCtx.drawImage(canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"],w*2,0,w,h,650+i*100,670,w,h) ;
+							} else if ( skill.timer === skill.speed ){
+								gameCtx.drawImage(canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"],w*1,0,w,h,650+i*100,670,w,h) ;
+							} else {
+								gameCtx.drawImage(canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"],w*0,0,w,h,650+i*100,670,w,h) ;
+							}
+						}
+					}
+					return; ; 
 				}
 			}
 		},
