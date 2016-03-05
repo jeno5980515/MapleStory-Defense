@@ -161,6 +161,7 @@ var Defender = (function(){
 
 			var doubleArrow = common.createSkill({
 				name : "Double Arrow" ,
+				canvasName : "archer_skill0" ,
 				needLevel : 1 ,
 				needSkill : [] ,
 				nowLevel : 1 ,
@@ -245,6 +246,7 @@ var Defender = (function(){
 
 			var criticalArrow = common.createSkill({
 				name : "Critical Arrow" ,
+				canvasName : "archer_skill1" ,
 				needLevel : 1 ,
 				needSkill : [] ,
 				nowLevel : 1 ,
@@ -292,6 +294,7 @@ var Defender = (function(){
 			
 			var magicClaw = common.createSkill({
 				name : "Magic Claw" ,
+				canvasName : "magician_skill0" ,
 				needLevel : 1 ,
 				needSkill : [] ,
 				nowLevel : 1 ,
@@ -380,12 +383,13 @@ var Defender = (function(){
 			
 			var magicBomb = common.createSkill({
 				name : "Magic Bomb" ,
+				canvasName : "magician_skill1" ,
 				needLevel : 1 ,
 				needSkill : [] ,
 				nowLevel : 1 ,
 				effect : [] ,
-				speed : 200 ,
-				timer : 200 ,
+				speed : 500 ,
+				timer : 500 ,
 				target : [] ,
 				type : "active" ,
 				ratio : 1.5 ,				
@@ -496,7 +500,7 @@ var Defender = (function(){
 				attackOffsetY : -15 ,
 				hitDy : 20 ,
 				attackEffectDelay : 1 ,
-				skill : [magicClaw,magicBomb]
+				skill : [magicBomb,magicClaw]
 			}) ;
 
 			soldierMap['magician'] = magician ;
@@ -910,6 +914,7 @@ var Defender = (function(){
 				isInit : false ,
 				ratio : data.ratio || 1 ,
 				probability : data.probability || 1 ,
+				canvasName : data.canvasName || null 
 			}
 			if ( data.canvas !== undefined ){
 				skill["canvas"] = data.canvas ;
@@ -1326,14 +1331,15 @@ var Defender = (function(){
 						gameCtx.fillText("Skill:",650,670);
 						for ( var i = 0 ; i < soldier.soldier.skill.length ; i ++ ){
 							var skill = soldier.soldier.skill[i] ;
-							var w = canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"].width / 3 ;
-							var h = canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"].height ;
+							var canvasName = skill.canvasName ;
+							var w = canvasMap[canvasName+"_icon"].width / 3 ;
+							var h = canvasMap[canvasName+"_icon"].height ;
 							if ( skill.nowLevel <= 0 ){
-								gameCtx.drawImage(canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"],w*2,0,w,h,650+i*100,670,w,h) ;
+								gameCtx.drawImage(canvasMap[canvasName+"_icon"],w*2,0,w,h,650+i*100,670,w,h) ;
 							} else if ( skill.timer === skill.speed ){
-								gameCtx.drawImage(canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"],w*1,0,w,h,650+i*100,670,w,h) ;
+								gameCtx.drawImage(canvasMap[canvasName+"_icon"],w*1,0,w,h,650+i*100,670,w,h) ;
 							} else {
-								gameCtx.drawImage(canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"],w*0,0,w,h,650+i*100,670,w,h) ;
+								gameCtx.drawImage(canvasMap[canvasName+"_icon"],w*0,0,w,h,650+i*100,670,w,h) ;
 							}
 						}
 					}
@@ -1356,14 +1362,16 @@ var Defender = (function(){
 						gameCtx.fillText("Skill:",650,670);
 						for ( var i = 0 ; i < soldier.soldier.skill.length ; i ++ ){
 							var skill = soldier.soldier.skill[i] ;
-							var w = canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"].width / 3 ;
-							var h = canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"].height ;
+							var canvasName = skill.canvasName ;
+							console.log(canvasName);
+							var w = canvasMap[canvasName+"_icon"].width / 3 ;
+							var h = canvasMap[canvasName+"_icon"].height ;
 							if ( skill.nowLevel <= 0 ){
-								gameCtx.drawImage(canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"],w*2,0,w,h,650+i*100,670,w,h) ;
+								gameCtx.drawImage(canvasMap[canvasName+"_icon"],w*2,0,w,h,650+i*100,670,w,h) ;
 							} else if ( skill.timer === skill.speed ){
-								gameCtx.drawImage(canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"],w*1,0,w,h,650+i*100,670,w,h) ;
+								gameCtx.drawImage(canvasMap[canvasName+"_icon"],w*1,0,w,h,650+i*100,670,w,h) ;
 							} else {
-								gameCtx.drawImage(canvasMap[roleList[soldier.soldier.id]+"_skill"+i+"_icon"],w*0,0,w,h,650+i*100,670,w,h) ;
+								gameCtx.drawImage(canvasMap[canvasName+"_icon"],w*0,0,w,h,650+i*100,670,w,h) ;
 							}
 						}
 					}
@@ -1497,9 +1505,10 @@ var Defender = (function(){
 				gameCtx.fillText("Point : "+mySoldierList[soldierIndex].point,x,500) ;
 				for ( var i = 0 ; i < mySoldierList[soldierIndex].skill.length ; i ++ ){
 					var skill = mySoldierList[soldierIndex].skill[i] ;
-					var w = canvasMap[roleList[soldierIndex]+"_skill"+i+"_icon"].width / 3
-					var h = canvasMap[roleList[soldierIndex]+"_skill"+i+"_icon"].height  ;
-					gameCtx.drawImage(canvasMap[roleList[soldierIndex]+"_skill"+i+"_icon"],w*1,0,w,h,x,550+i*100,w,h) ;
+					var canvasName = skill.canvasName ;
+					var w = canvasMap[canvasName+"_icon"].width / 3
+					var h = canvasMap[canvasName+"_icon"].height  ;
+					gameCtx.drawImage(canvasMap[canvasName+"_icon"],w*1,0,w,h,x,550+i*100,w,h) ;
 					gameCtx.fillText("Skill Level : "+skill.nowLevel,x,600+i*100) ;
 				}
 			},
