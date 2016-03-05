@@ -1363,7 +1363,6 @@ var Defender = (function(){
 						for ( var i = 0 ; i < soldier.soldier.skill.length ; i ++ ){
 							var skill = soldier.soldier.skill[i] ;
 							var canvasName = skill.canvasName ;
-							console.log(canvasName);
 							var w = canvasMap[canvasName+"_icon"].width / 3 ;
 							var h = canvasMap[canvasName+"_icon"].height ;
 							if ( skill.nowLevel <= 0 ){
