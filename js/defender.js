@@ -10,7 +10,7 @@ var Defender = (function(){
 	var defenderList = [] ;
 	var imageList = ["background","beginner_stand","swordman","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win","beginner_hit","beginner","beginner_attack","swordman_hit","beginner_attack_effect","snail","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2",
 	"archer","archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
-	"magician","magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0"] ;
+	"magician","magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1"] ;
 	var loadImageProgress = 0 ;
 	var imgMap = {} ;
 	var canvasMap = {} ;
@@ -357,9 +357,8 @@ var Defender = (function(){
 									target[0].isHit({id:-1,canvas:canvasMap["magician_skill0_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:5,width:canvasMap["magician_skill0_hit"].width/5,height:canvasMap["magician_skill0_hit"].height,type:"magician_skill0"}) ;
 								}
 								else {
-									console.log(2);
 									target[0].isHit({id:-1,atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:5,width:canvasMap["magician_skill0_hit"].width/5,height:canvasMap["magician_skill0_hit"].height}) ;
-									console.log(2);
+
 								}
 								canvas.effectBoolean[i] = true ;
 								break ;
@@ -370,6 +369,103 @@ var Defender = (function(){
 						for ( var i = 0 ; i < monsterList.length  ; i ++ ){
 							if ( Math.abs(monsterList[i].x-x) <= range && monsterList[i].hitAble === true ){
 								target.push(monsterList[i]);
+								break ;
+							} 
+						}
+					}
+				}) 
+
+			}) ;
+
+			
+			var magicBomb = common.createSkill({
+				name : "Magic Bomb" ,
+				needLevel : 1 ,
+				needSkill : [] ,
+				nowLevel : 1 ,
+				effect : [] ,
+				speed : 200 ,
+				timer : 200 ,
+				target : [] ,
+				type : "active" ,
+				ratio : 1.5 ,				
+				canvas : {
+					state : "magicBomb" ,
+					w : canvasMap["magician_skill1"].width / 3 ,
+					h : canvasMap["magician_skill1"].height ,
+					canvas : canvasMap["magician_skill1"] ,
+					nowFrame : 0 ,
+					totalFrame : 3 ,
+					delay : 10 ,
+					timer : 0 ,
+					effectFrame : [2] ,
+					effectBoolean : [false],
+					animationFrames : 0 ,
+					animationBeginFrame : [1] ,
+					animationBoolean : [false] ,
+					attackEffectDx : -110 ,
+					attackEffectDy : -20 ,
+					attackEffectVx : 0 ,
+					attackEffectVy : 0 ,
+					hitDx : -40 ,
+					hitDy : -80 ,
+					offsetX : -40 ,
+					offsetY : -15 
+				} , 
+				f : common.createSkillFunctionActive({
+					state : "magicBomb" ,
+					createEffectFunction : function(x,y,range,state,canvas){
+						var name = "magician_skill1_effect" , total = 7 ;
+						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
+							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
+								common.createAnimation({
+									canvas : canvasMap[name] ,
+									x : x + canvas.attackEffectDx  ,
+									y : y + canvas.attackEffectDy ,
+									nowFrame : 0 ,
+									timer : 0 ,
+									delay : 5 ,
+									totalFrame : total ,
+									dx : canvas.attackEffectVx ,
+									dy : canvas.attackEffectVy ,
+									width : canvasMap[name].width / total , 
+									height : canvasMap[name].height  
+								});
+								canvas.animationBoolean[i] = true ;
+							}
+						}
+					} ,
+					createHitFunction : function(x,y,range,state,canvas,target,atk,effect,ratio){
+						var name = "magician_skill1" , total = 7 ;
+						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
+							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
+								for ( var j = 0 ; j < target.length ; j ++ ){
+									var atkSum = { result : Math.round((atk - target[j].def)*ratio) , state : [] } ;
+									for ( var k = 0 ; k < effect.length ; j ++ ){
+										effect[k].f(atkSum);
+									}
+									if ( j === 0 ){
+										target[j].isHit({id:-1,canvas:canvasMap[name+"_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name}) ;
+									}
+									else {
+										target[j].isHit({id:-1,atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height}) ;
+									}
+								}
+								canvas.effectBoolean[i] = true ;
+								break ;
+							}
+						}
+					},
+					getTargetFunction : function(x,y,range,state,canvas,target){
+						var count = 0 , r = 70 ;
+						for ( var i = 0 ; i < monsterList.length  ; i ++ ){
+							if ( Math.abs(monsterList[i].x-x) <= range && monsterList[i].hitAble === true ){
+								var mx = monsterList[i].x ;
+								for ( var j = 0 ; j < monsterList.length ; j ++ ){
+									if ( Math.abs(monsterList[j].x-mx) <= r && monsterList[j].hitAble === true ){
+										target.push(monsterList[j]);
+									}
+								}  
 								break ;
 							} 
 						}
@@ -400,7 +496,7 @@ var Defender = (function(){
 				attackOffsetY : -15 ,
 				hitDy : 20 ,
 				attackEffectDelay : 1 ,
-				skill : [magicClaw]
+				skill : [magicClaw,magicBomb]
 			}) ;
 
 			soldierMap['magician'] = magician ;
@@ -779,7 +875,6 @@ var Defender = (function(){
 						offsetX : this.attackOffsetX ,
 						offsetY : this.attackOffsetY
 					}
-					console.log(this.attack);
 					for ( var i = 0 ; i < this.skill.length ; i ++ ){
 						if ( this.skill[i].type === "active"){
 							this[this.skill[i].canvas.state] = this.skill[i].canvas ;
@@ -1147,7 +1242,6 @@ var Defender = (function(){
 					var canvas = preStage.invokeList[i].soldier[state].canvas ;
 					var w = preStage.invokeList[i].soldier[state].w ;
 					var h = preStage.invokeList[i].soldier[state].h ;
-					console.log(preStage.invokeList[i].soldier[state].offsetY);
 					gameCtx.drawImage(canvas,w*nowFrame,0,w,h,preStage.invokeList[i].x+preStage.invokeList[i].soldier[state].offsetX,preStage.invokeList[i].y+preStage.invokeList[i].soldier[state].offsetY,w,h);
 
 				}
@@ -1450,7 +1544,7 @@ var Defender = (function(){
 		exp : 0 ,
 		expTotal : 0 ,
 		addMonsterTimer : 0 ,
-		addMonsterDelay : 100 ,
+		addMonsterDelay : 50 ,
 		initExp : function(exp){
 			stage.exp = exp ;
 			stage.expTotal = exp ;
