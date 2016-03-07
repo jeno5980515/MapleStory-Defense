@@ -11,7 +11,7 @@ var Defender = (function(){
 	var imageList = ["background","beginner_stand","swordman","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win","beginner_hit","beginner","beginner_attack","swordman_hit","beginner_attack_effect","snail","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2",
 	"archer","archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
 	"magician","magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1",
-	"rogue","rogue_stand","rogue_attack","rogue_hit","rogue_attack_effect","rogue_skill0_icon","rogue_skill0_hit","rogue_skill0_effect","rogue_skill0","rogue_skill0_hit_effect"] ;
+	"rogue","rogue_stand","rogue_attack","rogue_hit","rogue_attack_effect","rogue_skill0_icon","rogue_skill0_hit","rogue_skill0_effect","rogue_skill0","rogue_skill0_hit_effect","rogue_skill1_icon","rogue_skill1_hit","rogue_skill1_effect","rogue_skill1"] ;
 	var loadImageProgress = 0 ;
 	var imgMap = {} ;
 	var canvasMap = {} ;
@@ -117,6 +117,8 @@ var Defender = (function(){
 							this.target = [] ;
 							for ( var i = 0 ; i < canvas.animationBoolean.length ; i ++  ){
 								canvas.animationBoolean[i] = false ;
+							}							
+							for ( var i = 0 ; i < canvas.effectBoolean.length ; i ++  ){
 								canvas.effectBoolean[i] = false ;
 							}
 							this.timer = 0 ;
@@ -601,9 +603,99 @@ var Defender = (function(){
 
 			}) ;
 
+
+			var doubleStab = common.createSkill({
+				name : "Double Stab" ,
+				canvasName : "rogue_skill1" ,
+				needLevel : 1 ,
+				needSkill : [] ,
+				nowLevel : 1 ,
+				effect : [] ,
+				speed : 100 ,
+				timer : 100 ,
+				target : [] ,
+				ratio : 0.7 ,
+				type : "active" ,				
+				canvas : {
+					state : "doubleStab" ,
+					w : canvasMap["rogue_skill1"].width / 3 ,
+					h : canvasMap["rogue_skill1"].height ,
+					canvas : canvasMap["rogue_skill1"] ,
+					nowFrame : 0 ,
+					totalFrame : 3 ,
+					delay : 5 ,
+					timer : 0 ,
+					effectFrame : [0,2] ,
+					effectBoolean : [false,false],
+					animationFrames : 0 ,
+					animationBeginFrame : [2] ,
+					animationBoolean : [false] ,
+					attackEffectDx : -38 ,
+					attackEffectDy : 20 ,
+					attackEffectVx : 0 ,
+					attackEffectVy : 0 ,
+					hitDx : -42 ,
+					hitDy : -40 ,
+					offsetX : -20 ,
+					offsetY : 7 
+				} , 
+				f : common.createSkillFunctionActive({
+					state : "doubleStab" ,
+					createEffectFunction : function(x,y,range,state,canvas){
+						var name = "rogue_skill1_effect" , total = 1 ;
+						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
+							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
+								common.createAnimation({
+									canvas : canvasMap[name] ,
+									x : x + canvas.attackEffectDx  ,
+									y : y + canvas.attackEffectDy ,
+									nowFrame : 0 ,
+									timer : 0 ,
+									delay : 5 ,
+									totalFrame : total ,
+									dx : canvas.attackEffectVx ,
+									dy : canvas.attackEffectVy ,
+									width : canvasMap[name].width  , 
+									height : canvasMap[name].height  
+								});
+								canvas.animationBoolean[i] = true ;
+								break ;
+							}
+						}
+					} ,
+					createHitFunction : function(x,y,range,state,canvas,target,atk,effect,ratio){
+						var name = "rogue_skill1" , total = 5 ; 
+						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
+							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
+								var atkSum = { result : Math.round((atk - target[0].tempDef)*ratio), state : [] } ;
+								for ( var j = 0 ; j < effect.length ; j ++ ){
+									effect[j].f(atkSum);
+								}
+								if ( i === 0 ){
+									target[0].isHit({canvas:canvasMap[name+"_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name}) ;
+								} else {
+									target[0].isHit({atk:atkSum}) ;	
+								}
+								canvas.effectBoolean[i] = true ;
+								break ;
+							}
+						}
+					},
+					getTargetFunction : function(x,y,range,state,canvas,target){
+						for ( var i = 0 ; i < monsterList.length  ; i ++ ){
+							if ( Math.abs(monsterList[i].x-x) <= range && monsterList[i].hitAble === true ){
+								target.push(monsterList[i]);
+								break ;
+							} 
+						}
+					}
+				}) 
+
+			}) ;
+
 			var rogue = common.createSoldier({
 				id : 3,
-				atk : 20,
+				atk : 30,
 				speed: 30,
 				range: 100,
 				level: 1,
@@ -620,7 +712,7 @@ var Defender = (function(){
 				standOffsetY : 5 ,
 				attackOffsetX : -30 ,
 				attackOffsetY : 5 ,
-				skill : [disorder]
+				skill : [disorder,doubleStab]
 			}) ;
 			soldierMap['rogue'] = rogue ;
 
