@@ -223,7 +223,7 @@ var Defender = (function(){
 					createHitFunction : function(x,y,range,state,canvas,target,atk,effect,ratio){
 						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
 							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
-								var atkSum = { result : Math.round((atk - target[i].tempDef)*ratio), state : [] } ;
+								var atkSum = { result : Math.round((atk)*ratio), state : [] } ;
 								for ( var j = 0 ; j < effect.length ; j ++ ){
 									effect[j].f(atkSum);
 								}
@@ -357,7 +357,7 @@ var Defender = (function(){
 					createHitFunction : function(x,y,range,state,canvas,target,atk,effect,ratio){
 						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
 							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
-								var atkSum = { result : Math.round((atk - target[0].tempDef)*ratio) , state : [] } ;
+								var atkSum = { result : Math.round((atk )*ratio) , state : [] } ;
 								for ( var j = 0 ; j < effect.length ; j ++ ){
 									effect[j].f(atkSum);
 								}
@@ -449,7 +449,7 @@ var Defender = (function(){
 						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
 							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
 								for ( var j = 0 ; j < target.length ; j ++ ){
-									var atkSum = { result : Math.round((atk - target[j].tempDef)*ratio) , state : [] } ;
+									var atkSum = { result : Math.round((atk)*ratio) , state : [] } ;
 									for ( var k = 0 ; k < effect.length ; j ++ ){
 										effect[k].f(atkSum);
 									}
@@ -667,7 +667,7 @@ var Defender = (function(){
 						var name = "rogue_skill1" , total = 5 ; 
 						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
 							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
-								var atkSum = { result : Math.round((atk - target[0].tempDef)*ratio), state : [] } ;
+								var atkSum = { result : Math.round((atk)*ratio), state : [] } ;
 								for ( var j = 0 ; j < effect.length ; j ++ ){
 									effect[j].f(atkSum);
 								}
@@ -858,6 +858,10 @@ var Defender = (function(){
 					gameCtx.drawImage(canvasMap["hp"],this.x-2,this.y-22.5,canvasMap["hp"].width*(this.nowHp/this.maxHp)*46,canvasMap["hp"].height+0.5);
 					//gameCtx.fillText(this.nowHp+ '/' + this.maxHp ,this.x,this.y-10) ;
 				},
+				calculateDamage : function(result){
+					var d = this.tempDef * 0.06 / ( 1+0.06*this.tempDef) ;
+					return Math.round(result * (1 - d)) ;
+				},
 				isHit : function(data){
 					var dx = data.dx || 0 , dy = data.dy || 0 ;
 					this.state = "hit" ;
@@ -903,7 +907,7 @@ var Defender = (function(){
 							}
 						} 
 					}
-					var damage = atk  ;					
+					var damage = this.calculateDamage(atk)  ;					
 					if ( damage < 0 && data.buff === undefined ){
 						damage = 0 ;
 					}
@@ -1087,7 +1091,7 @@ var Defender = (function(){
 						}
 						if ( this.attack.effectFrame === this.attack.nowFrame ){
 							for ( var i = 0 ; i < this.target.length ; i ++  ){
-								var atkSum = { result : this.atk - this.target[i].tempDef , state : [] } ;
+								var atkSum = { result : this.atk , state : [] } ;
 								for ( var j = 0 ; j < this.effect.length ; j ++ ){
 									this.effect[j].f(atkSum);
 								}
