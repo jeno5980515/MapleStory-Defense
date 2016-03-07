@@ -10,7 +10,8 @@ var Defender = (function(){
 	var defenderList = [] ;
 	var imageList = ["background","beginner_stand","swordman","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win","beginner_hit","beginner","beginner_attack","swordman_hit","beginner_attack_effect","snail","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2",
 	"archer","archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
-	"magician","magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1"] ;
+	"magician","magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1",
+	"rogue","rogue_stand","rogue_attack","rogue_hit","rogue_attack_effect","rogue_skill0_icon","rogue_skill0_hit","rogue_skill0_effect","rogue_skill0","rogue_skill0_hit_effect"] ;
 	var loadImageProgress = 0 ;
 	var imgMap = {} ;
 	var canvasMap = {} ;
@@ -22,9 +23,9 @@ var Defender = (function(){
 	var mySoldierList = [] ;
 	var mouseOver = 'none' ;
 	var nowChooseSoldier ;
-	var roleList = ['beginner','archer','magician'] ;
+	var roleList = ['beginner','archer','magician','rogue'] ;
 	var monsterIdList = ['snail'];
-	var roleDescriptionList = ['beginner','archer','magician'] ;
+	var roleDescriptionList = ['beginner','archer','magician','rogue'] ;
 	var monsterDescriptionList = ['snail'] ;
 	var soldierMap = {} ; 
 	var monsterMap = {} ;
@@ -220,7 +221,7 @@ var Defender = (function(){
 					createHitFunction : function(x,y,range,state,canvas,target,atk,effect,ratio){
 						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
 							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
-								var atkSum = { result : Math.round((atk - target[i].def)*ratio), state : [] } ;
+								var atkSum = { result : Math.round((atk - target[i].tempDef)*ratio), state : [] } ;
 								for ( var j = 0 ; j < effect.length ; j ++ ){
 									effect[j].f(atkSum);
 								}
@@ -259,7 +260,9 @@ var Defender = (function(){
 					var r = Math.random();
 					if ( r < this.probability ){
 						d.result *= this.ratio ;
-						d.state.push("critical") ;
+						d.state.push({
+							name : "critical"
+						}) ;
 					} else {
 						return ;
 					}
@@ -352,7 +355,7 @@ var Defender = (function(){
 					createHitFunction : function(x,y,range,state,canvas,target,atk,effect,ratio){
 						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
 							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
-								var atkSum = { result : Math.round((atk - target[0].def)*ratio) , state : [] } ;
+								var atkSum = { result : Math.round((atk - target[0].tempDef)*ratio) , state : [] } ;
 								for ( var j = 0 ; j < effect.length ; j ++ ){
 									effect[j].f(atkSum);
 								}
@@ -444,7 +447,7 @@ var Defender = (function(){
 						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
 							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
 								for ( var j = 0 ; j < target.length ; j ++ ){
-									var atkSum = { result : Math.round((atk - target[j].def)*ratio) , state : [] } ;
+									var atkSum = { result : Math.round((atk - target[j].tempDef)*ratio) , state : [] } ;
 									for ( var k = 0 ; k < effect.length ; j ++ ){
 										effect[k].f(atkSum);
 									}
@@ -505,6 +508,122 @@ var Defender = (function(){
 
 			soldierMap['magician'] = magician ;
 
+
+			var disorder = common.createSkill({
+				name : "Disorder" ,
+				canvasName : "rogue_skill0" ,
+				needLevel : 1 ,
+				needSkill : [] ,
+				nowLevel : 1 ,
+				effect : [] ,
+				speed : 100 ,
+				timer : 100 ,
+				target : [] ,
+				type : "active" ,
+				ratio : 0.5 ,				
+				canvas : {
+					state : "disorder" ,
+					w : canvasMap["rogue_skill0"].width / 3 ,
+					h : canvasMap["rogue_skill0"].height ,
+					canvas : canvasMap["rogue_skill0"] ,
+					nowFrame : 0 ,
+					totalFrame : 3 ,
+					delay : 10 ,
+					timer : 0 ,
+					effectFrame : [2] ,
+					effectBoolean : [false],
+					animationFrames : 0 ,
+					animationBeginFrame : [1] ,
+					animationBoolean : [false] ,
+					attackEffectDx : -30 ,
+					attackEffectDy : 25 ,
+					attackEffectVx : 0 ,
+					attackEffectVy : 0 ,
+					hitDx : 999 ,
+					hitDy : 999 ,
+					offsetX : -15 ,
+					offsetY : 5 
+				} , 
+				f : common.createSkillFunctionActive({
+					state : "disorder" ,
+					createEffectFunction : function(x,y,range,state,canvas){
+						var name = "rogue_skill0_effect" , total = 1 ;
+						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
+							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
+								common.createAnimation({
+									canvas : canvasMap[name] ,
+									x : x + canvas.attackEffectDx  ,
+									y : y + canvas.attackEffectDy ,
+									nowFrame : 0 ,
+									timer : 0 ,
+									delay : 5 ,
+									totalFrame : total ,
+									dx : canvas.attackEffectVx ,
+									dy : canvas.attackEffectVy ,
+									width : canvasMap[name].width / total , 
+									height : canvasMap[name].height  
+								});
+								canvas.animationBoolean[i] = true ;
+							}
+						}
+					} ,
+					createHitFunction : function(x,y,range,state,canvas,target,atk,effect,ratio){
+						var name = "rogue_skill0" , total = 10 , hitEffectFrame = 10 , hitEffectDx = 9 , hitEffectDy = -20 , hitEffectDelay = 5 , hitEffectVx = 0 ;
+						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
+							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
+								var atkSum = { result : -1 , state : [ { name : "disorder"  , ratio : ratio , remain : -1  } ] } ;
+								hitEffectVx = target[0].speed ;
+								target[0].isHit({canvas:canvasMap[name+"_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name,hitEffectFrame:hitEffectFrame,buff:true,hitEffectDx:hitEffectDx,hitEffectDy:hitEffectDy,hitEffectDelay:hitEffectDelay,hitEffectVx:hitEffectVx}) ;
+								canvas.effectBoolean[i] = true ;
+								break ;
+							}
+						}
+					},
+					getTargetFunction : function(x,y,range,state,canvas,target){
+						var count = 0 ;
+						for ( var i = 0 ; i < monsterList.length  ; i ++ ){
+							if ( Math.abs(monsterList[i].x-x) <= range && monsterList[i].hitAble === true ){
+								var u = false ;
+								for ( var j = 0 ; j < monsterList[i].effect.length ; j ++ ){
+									if ( monsterList[i].effect[j].name === "disorder" ){
+										u = true ;
+										break ;
+									} 
+								} 
+								if ( u === false ){
+									target.push(monsterList[i]);
+									break ;
+								}
+							} 
+						}
+					}
+				}) 
+
+			}) ;
+
+			var rogue = common.createSoldier({
+				id : 3,
+				atk : 20,
+				speed: 30,
+				range: 100,
+				level: 1,
+				transferLevel: 10,
+				hitFrame: 3,
+				standFrame: 5,
+				attackFrame: 3,
+				attackEffectFrame: 2,
+				attackEffectDx : -50 ,
+				attackEffectDy : 20 ,
+				attackAnimationFrame: 1,
+				attackAnimationBeginFrame:2,
+				standOffsetX : 5 ,
+				standOffsetY : 5 ,
+				attackOffsetX : -30 ,
+				attackOffsetY : 5 ,
+				skill : [disorder]
+			}) ;
+			soldierMap['rogue'] = rogue ;
+
 		},
 		initMonsterMap : function(){
 			var snail = common.createMonster(0,0,370,100,100,3,1,[],[],9,1,9,true);
@@ -526,6 +645,8 @@ var Defender = (function(){
 				skill : skill || [] ,
 				effect : effect || [] ,
 				hitAble : hitAble || true ,
+				tempSpeed : speed || 0 ,
+				tempDef : def || 0 ,
 				move : {
 					nowFrame : 0 ,
 					totalFrame : moveFrame ,
@@ -611,7 +732,7 @@ var Defender = (function(){
 				isMove : function(){
 					if ( stage.isGameOver === true || stage.isGameWin === true )
 						return ;
-					this.x += this.speed ;
+					this.x += this.tempSpeed ;
 					if ( this.x >= canvasWidth ){
 						stage.isGameOver = true ;
 					}
@@ -650,21 +771,57 @@ var Defender = (function(){
 					this.state = "hit" ;
 					var atk = data.atk.result ;
 					var state = data.atk.state ;
-					var c = false ;
+					var critical = false ;
+					var type = data.type ; 
+
 					for ( var i = 0 ; i < state.length ; i ++ ){
-						if ( state[i] === "critical" ){
-							c = true ;
+						if ( state[i].name === "critical" ){
+							critical = true ;
 							break ;
+						} else {							
+							state[i].canvas = {
+								canvas : canvasMap[type+"_hit_effect"] ,
+								x : data.hitEffectDx ,
+								y : - 45 + data.hitEffectDy ,
+								nowFrame : 0 ,
+								delay : data.hitEffectDelay || 5 ,
+								timer : 0 ,
+								dx : data.hitEffectVx ,
+								totalFrame : data.hitEffectFrame ,
+								width : canvasMap[type+"_hit_effect"].width / data.totalFrame , 
+								height : canvasMap[type+"_hit_effect"].height 
+							}
+							if ( state[i].name === "disorder" ){
+								if ( this.effect.length === 0 ){
+									this.effect.push(state[i]) ;
+									this.refreshState();
+								} else {
+									for ( var j = 0 ; j < this.effect.length ; j ++ ){
+										if ( this.effect[j].name === "disorder" ){
+											this.effect[j].ratio = state[i].ratio ;
+											this.refreshState();
+											break ;
+										} 
+										if ( j === this.effect.length - 1 ){
+											this.effect.push(state[i]) ;
+											this.refreshState();
+										}
+									}
+								}
+							}
 						} 
 					}
-					var type = data.type ; 
-					var damage = atk  ;
+					var damage = atk  ;					
+					if ( damage < 0 && data.buff === undefined ){
+						damage = 0 ;
+					}
 					this.nowHp -= damage ;
+					
 					if ( canvasMap[type+"_hit"] !== undefined ){
 						common.createAnimation({
 							canvas : canvasMap[type+"_hit"] || data.canvas,
 							x : this.x + dx ,
-							y : this.y - 45 + dy ,
+							y : this.y  - 45 + dy ,
 							nowFrame : 0 ,
 							delay : data.delay || 5 ,
 							timer : 0 ,
@@ -673,12 +830,16 @@ var Defender = (function(){
 							height : canvasMap[type+"_hit"].height 
 						});
 					}
-					this.showNumberDamage(damage,c) ;
+					
+					if ( damage >= 0 )
+						this.showNumberDamage(damage,critical) ;
+
 				},
 				showAll : function(){
 					this.showMonster();
 					if ( this.state !== "die" )
 						this.showHp();
+					this.showState();
 				},				
 				setStateCanvas : function(){
 					var w = canvasMap[monsterIdList[this.id]+"_move"].width ;
@@ -719,7 +880,34 @@ var Defender = (function(){
 						delay : 10 ,
 						timer : 0 
 					}
+				},
+				refreshState : function(){
+					this.tempDef = this.def ;
+					for ( var i = 0 ; i < this.effect.length ; i ++ ){
+						if ( this.effect[i].name === "disorder" ){
+							this.tempDef = Math.round(this.tempDef*(1 - this.effect[i].ratio)) ;
+						}
+					}
+				},
+				showState : function(){
+					for ( var i = 0 ; i < this.effect.length ; i ++ ){
+						if ( this.effect[i].remain !== -1 ){
+							if ( this.effect[i].remain === 0 ){
+								this.effect.splice(i, 1) ;
+								i -- ;
+								continue ;
+							} else {
+								this.effect[i].remain -- ;
+							}
+						}
+						if ( this.effect[i].canvas !== undefined && animationList.indexOf(this.effect[i].animation) === -1 ){
+							this.effect[i].animation = common.clone(this.effect[i].canvas);
+							this.effect[i].animation.x += this.x ;
+							this.effect[i].animation.y += this.y ;
+							common.createAnimation(this.effect[i].animation);
+						}
 
+					}
 				}
 			}.init();
 			return monster
@@ -763,7 +951,7 @@ var Defender = (function(){
 				attackOffsetY : data.attackOffsetY || 0 ,
 				attackEffectVx : data.attackEffectVx || 0 ,
 				attackEffectVy : data.attackEffectVy || 0 ,
-				attackEffectDelay : data.attackEffectDelay || 3 ,
+				attackEffectDelay : data.attackEffectDelay || 10 ,
 				init : function(){
 					this.setStateCanvas();
 					return this ;
@@ -807,14 +995,13 @@ var Defender = (function(){
 						}
 						if ( this.attack.effectFrame === this.attack.nowFrame ){
 							for ( var i = 0 ; i < this.target.length ; i ++  ){
-								var atkSum = { result : this.atk - this.target[i].def , state : [] } ;
+								var atkSum = { result : this.atk - this.target[i].tempDef , state : [] } ;
 								for ( var j = 0 ; j < this.effect.length ; j ++ ){
 									this.effect[j].f(atkSum);
 								}
 								this.target[i].isHit({id:this.id,atk:atkSum,dx:this.hitDx,dy:this.hitDy,totalFrame:this.hitFrame,type:roleList[this.id]}) ;
 							}
 							this.target = [] ;
-							this.attack.animationBoolean = false ;
 						}
 					} 
 					if ( this.state === "stand" || this.state === "attack" ){
@@ -825,6 +1012,7 @@ var Defender = (function(){
 							this[this.state].timer = 0 ;
 							if ( this[this.state].nowFrame >= this[this.state].totalFrame ){
 								this[this.state].nowFrame = 0 ;
+								this.attack.animationBoolean = false ;
 								this.state = "stand" ;
 							}
 						}
@@ -1003,9 +1191,7 @@ var Defender = (function(){
 			mySoldierList.push(common.clone(soldierMap['beginner']));
 			mySoldierList.push(common.clone(soldierMap['archer']));
 			mySoldierList.push(common.clone(soldierMap['magician']));
-			//mySoldierList.push(common.clone(soldierMap['beginner']));
-			//mySoldierList.push(common.clone(soldierMap['beginner']));
-			//mySoldierList.push(common.clone(soldierMap['swordman']));
+			mySoldierList.push(common.clone(soldierMap['rogue']));
 		},
 		init: function(){
 			SlEEPBAG.canvasAutoResizer.load(function(self){
