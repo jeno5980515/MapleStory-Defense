@@ -8,10 +8,11 @@ var Defender = (function(){
 	var IE = "ActiveXObject" in window ;
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
-	var imageList = ["background","beginner_stand","swordman","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win","beginner_hit","beginner","beginner_attack","swordman_hit","beginner_attack_effect","snail","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2",
-	"archer","archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
-	"magician","magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1",
-	"rogue","rogue_stand","rogue_attack","rogue_hit","rogue_attack_effect","rogue_skill0_icon","rogue_skill0_hit","rogue_skill0_effect","rogue_skill0","rogue_skill0_hit_effect","rogue_skill1_icon","rogue_skill1_hit","rogue_skill1_effect","rogue_skill1"] ;
+	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win","beginner_hit","beginner_attack","beginner_attack_effect","snail","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2",
+	"archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
+	"magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1",
+	"rogue_stand","rogue_attack","rogue_hit","rogue_attack_effect","rogue_skill0_icon","rogue_skill0_hit","rogue_skill0_effect","rogue_skill0","rogue_skill0_hit_effect","rogue_skill1_icon","rogue_skill1_hit","rogue_skill1_effect","rogue_skill1",
+	"swordman_stand","swordman_attack","swordman_hit","swordman_attack_effect","swordman_skill0_icon","swordman_skill0_hit","swordman_skill0_effect","swordman_skill0","swordman_skill1_icon","swordman_skill1_hit","swordman_skill1_effect","swordman_skill1"] ;
 	var loadImageProgress = 0 ;
 	var imgMap = {} ;
 	var canvasMap = {} ;
@@ -23,9 +24,9 @@ var Defender = (function(){
 	var mySoldierList = [] ;
 	var mouseOver = 'none' ;
 	var nowChooseSoldier ;
-	var roleList = ['beginner','archer','magician','rogue'] ;
+	var roleList = ['beginner','archer','magician','rogue',"swordman"] ;
 	var monsterIdList = ['snail'];
-	var roleDescriptionList = ['beginner','archer','magician','rogue'] ;
+	var roleDescriptionList = ['beginner','archer','magician','rogue',"swordman"] ;
 	var monsterDescriptionList = ['snail'] ;
 	var soldierMap = {} ; 
 	var monsterMap = {} ;
@@ -522,7 +523,7 @@ var Defender = (function(){
 				timer : 100 ,
 				target : [] ,
 				type : "active" ,
-				ratio : 0.5 ,				
+				ratio : 0.7 ,				
 				canvas : {
 					state : "disorder" ,
 					w : canvasMap["rogue_skill0"].width / 3 ,
@@ -630,14 +631,14 @@ var Defender = (function(){
 					animationFrames : 0 ,
 					animationBeginFrame : [2] ,
 					animationBoolean : [false] ,
-					attackEffectDx : -38 ,
+					attackEffectDx : -50 ,
 					attackEffectDy : 20 ,
 					attackEffectVx : 0 ,
 					attackEffectVy : 0 ,
 					hitDx : -42 ,
 					hitDy : -40 ,
-					offsetX : -20 ,
-					offsetY : 7 
+					offsetX : -30 ,
+					offsetY : 5
 				} , 
 				f : common.createSkillFunctionActive({
 					state : "doubleStab" ,
@@ -695,7 +696,7 @@ var Defender = (function(){
 
 			var rogue = common.createSoldier({
 				id : 3,
-				atk : 30,
+				atk : 50,
 				speed: 30,
 				range: 100,
 				level: 1,
@@ -704,17 +705,217 @@ var Defender = (function(){
 				standFrame: 5,
 				attackFrame: 3,
 				attackEffectFrame: 2,
-				attackEffectDx : -50 ,
+				attackEffectDx : -38 ,
 				attackEffectDy : 20 ,
 				attackAnimationFrame: 1,
 				attackAnimationBeginFrame:2,
 				standOffsetX : 5 ,
 				standOffsetY : 5 ,
-				attackOffsetX : -30 ,
-				attackOffsetY : 5 ,
+				attackOffsetX : -20 ,
+				attackOffsetY : 7 ,
 				skill : [disorder,doubleStab]
 			}) ;
 			soldierMap['rogue'] = rogue ;
+
+		
+			var slashBlast = common.createSkill({
+				name : "Slash Blast" ,
+				canvasName : "swordman_skill0" ,
+				needLevel : 1 ,
+				needSkill : [] ,
+				nowLevel : 1 ,
+				effect : [] ,
+				speed : 500 ,
+				timer : 500 ,
+				target : [] ,
+				type : "active" ,
+				ratio : 1.2 ,				
+				canvas : {
+					state : "slashBlast" ,
+					w : canvasMap["swordman_skill0"].width / 3 ,
+					h : canvasMap["swordman_skill0"].height ,
+					canvas : canvasMap["swordman_skill0"] ,
+					nowFrame : 0 ,
+					totalFrame : 3 ,
+					delay : 10 ,
+					timer : 0 ,
+					effectFrame : [2] ,
+					effectBoolean : [false],
+					animationFrames : 0 ,
+					animationBeginFrame : [0] ,
+					animationBoolean : [false] ,
+					attackEffectDx : -200 ,
+					attackEffectDy : -80 ,
+					attackEffectVx : 0 ,
+					attackEffectVy : 0 ,
+					hitDx : -15 ,
+					hitDy : -20 ,
+					offsetX : -24 ,
+					offsetY : 7 
+				} , 
+				f : common.createSkillFunctionActive({
+					state : "slashBlast" ,
+					createEffectFunction : function(x,y,range,state,canvas){
+						var name = "swordman_skill0_effect" , total = 12 ;
+						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
+							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
+								common.createAnimation({
+									canvas : canvasMap[name] ,
+									x : x + canvas.attackEffectDx  ,
+									y : y + canvas.attackEffectDy ,
+									nowFrame : 0 ,
+									timer : 0 ,
+									delay : 5 ,
+									totalFrame : total ,
+									dx : canvas.attackEffectVx ,
+									dy : canvas.attackEffectVy ,
+									width : canvasMap[name].width / total , 
+									height : canvasMap[name].height  
+								});
+								canvas.animationBoolean[i] = true ;
+							}
+						}
+					} ,
+					createHitFunction : function(x,y,range,state,canvas,target,atk,effect,ratio){
+						var name = "swordman_skill0" , total = 4 ;
+						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
+							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
+								for ( var j = 0 ; j < target.length ; j ++ ){
+									var atkSum = { result : Math.round((atk)*ratio) , state : [] } ;
+									for ( var k = 0 ; k < effect.length ; j ++ ){
+										effect[k].f(atkSum);
+									}
+									target[j].isHit({id:-1,canvas:canvasMap[name+"_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name}) ;
+								}
+								canvas.effectBoolean[i] = true ;
+								break ;
+							}
+						}
+					},
+					getTargetFunction : function(x,y,range,state,canvas,target){
+						var count = 0 , r = 100 ;
+						for ( var i = 0 ; i < monsterList.length  ; i ++ ){
+							if ( Math.abs(monsterList[i].x-x) <= range && monsterList[i].hitAble === true ){
+								var mx = monsterList[i].x ;
+								for ( var j = 0 ; j < monsterList.length ; j ++ ){
+									if ( Math.abs(monsterList[j].x-mx) <= r && monsterList[j].hitAble === true ){
+										target.push(monsterList[j]);
+									}
+								}  
+								break ;
+							} 
+						}
+					}
+				}) 
+
+			}) ;
+
+		
+			var powerStrike = common.createSkill({
+				name : "Power Strike" ,
+				canvasName : "swordman_skill1" ,
+				needLevel : 1 ,
+				needSkill : [] ,
+				nowLevel : 1 ,
+				effect : [] ,
+				speed : 300 ,
+				timer : 500 ,
+				target : [] ,
+				type : "active" ,
+				ratio : 1.5 ,				
+				canvas : {
+					state : "powerStrike" ,
+					w : canvasMap["swordman_skill1"].width / 3 ,
+					h : canvasMap["swordman_skill1"].height ,
+					canvas : canvasMap["swordman_skill1"] ,
+					nowFrame : 0 ,
+					totalFrame : 3 ,
+					delay : 10 ,
+					timer : 0 ,
+					effectFrame : [2] ,
+					effectBoolean : [false],
+					animationFrames : 0 ,
+					animationBeginFrame : [0] ,
+					animationBoolean : [false] ,
+					attackEffectDx : -70 ,
+					attackEffectDy : -80 ,
+					attackEffectVx : 0 ,
+					attackEffectVy : 0 ,
+					hitDx : -50 ,
+					hitDy : -13 ,
+					offsetX : -24 ,
+					offsetY : -11 
+				} , 
+				f : common.createSkillFunctionActive({
+					state : "powerStrike" ,
+					createEffectFunction : function(x,y,range,state,canvas){
+						var name = "swordman_skill1_effect" , total = 12 ;
+						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
+							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
+								common.createAnimation({
+									canvas : canvasMap[name] ,
+									x : x + canvas.attackEffectDx  ,
+									y : y + canvas.attackEffectDy ,
+									nowFrame : 0 ,
+									timer : 0 ,
+									delay : 5 ,
+									totalFrame : total ,
+									dx : canvas.attackEffectVx ,
+									dy : canvas.attackEffectVy ,
+									width : canvasMap[name].width / total , 
+									height : canvasMap[name].height  
+								});
+								canvas.animationBoolean[i] = true ;
+							}
+						}
+					} ,
+					createHitFunction : function(x,y,range,state,canvas,target,atk,effect,ratio){
+						var name = "swordman_skill1" , total = 2 ;
+						for ( var i = 0 ; i < canvas.effectFrame.length ; i ++ ){
+							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
+								var atkSum = { result : Math.round((atk)*ratio) , state : [] } ;
+								for ( var k = 0 ; k < effect.length ; j ++ ){
+									effect[k].f(atkSum);
+								}
+								target[0].isHit({id:-1,canvas:canvasMap[name+"_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name}) ;
+								canvas.effectBoolean[i] = true ;
+								break ;
+							}
+						}
+					},
+					getTargetFunction : function(x,y,range,state,canvas,target){
+						for ( var i = 0 ; i < monsterList.length  ; i ++ ){
+							if ( Math.abs(monsterList[i].x-x) <= range && monsterList[i].hitAble === true ){
+								target.push(monsterList[i]);
+							} 
+						}
+					}
+				}) 
+
+			}) ;
+
+			var swordman = common.createSoldier({
+				id : 4,
+				atk : 60,
+				speed: 150,
+				range: 200,
+				level: 1,
+				transferLevel: 10,
+				hitFrame: 3,
+				standFrame: 5,
+				attackFrame: 3,
+				attackEffectFrame: 2,
+				attackEffectDx : -70 ,
+				attackEffectDy : -10 ,
+				attackAnimationFrame: 1,
+				attackAnimationBeginFrame:2,
+				standOffsetX : -20 ,
+				standOffsetY : 5 ,
+				attackOffsetX : -48 ,
+				attackOffsetY : -7 ,
+				skill : [slashBlast,powerStrike]
+			}) ;
+			soldierMap['swordman'] = swordman ;
 
 		},
 		initMonsterMap : function(){
@@ -1288,6 +1489,7 @@ var Defender = (function(){
 			mySoldierList.push(common.clone(soldierMap['archer']));
 			mySoldierList.push(common.clone(soldierMap['magician']));
 			mySoldierList.push(common.clone(soldierMap['rogue']));
+			mySoldierList.push(common.clone(soldierMap['swordman']));
 		},
 		init: function(){
 			SlEEPBAG.canvasAutoResizer.load(function(self){
@@ -1568,6 +1770,7 @@ var Defender = (function(){
 			gameCtx.drawImage(canvasMap['confirm'],preStage.confirmButton.x,preStage.confirmButton.y);
 		},
 		showSoldierRange : function(){
+			/*
 			for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ){
 				if ( mouseOver === 'soldier' + i ){
 					gameCtx.fillStyle="#2894FF";
@@ -1598,6 +1801,7 @@ var Defender = (function(){
 				gameCtx.globalAlpha = 1;
 				return ;
 			}
+			*/
 		},
 		showSoldierDetail : function(){
 			for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ){
@@ -1777,7 +1981,7 @@ var Defender = (function(){
 				var x = preStage.pickSoldier.pickSoldierList[pickIndex].x ;
 				var y = preStage.pickSoldier.pickSoldierList[pickIndex].y ;
 				gameCtx.font="30px Arial";
-				gameCtx.drawImage(canvasMap[role],x,150);
+				//gameCtx.drawImage(canvasMap[role+"_stand"],x,150);
 				gameCtx.fillText("Level : "+mySoldierList[soldierIndex].level,x,250) ;
 				gameCtx.fillText("Dmage : "+mySoldierList[soldierIndex].atk,x,300) ;
 				gameCtx.fillText("Speed : "+mySoldierList[soldierIndex].speed,x,350) ;
