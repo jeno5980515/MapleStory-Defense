@@ -624,7 +624,7 @@ var Defender = (function(){
 					canvas : canvasMap["rogue_skill1"] ,
 					nowFrame : 0 ,
 					totalFrame : 3 ,
-					delay : 5 ,
+					delay : 8 ,
 					timer : 0 ,
 					effectFrame : [0,2] ,
 					effectBoolean : [false,false],
