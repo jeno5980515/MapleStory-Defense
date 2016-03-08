@@ -1914,8 +1914,8 @@ var Defender = (function(){
 			setInvokeToSoldier : function(index){
 				preStage.invokeList[preStage.nowPickInvoke].soldier = mySoldierList[index] ;
 				preStage.pickSoldier.pickSoldierList.splice(index,1);
-				preStage.invokeList[preStage.nowPickInvoke].w = canvasMap[common.getRole(mySoldierList[index].id)+"_stand"].width;
-				preStage.invokeList[preStage.nowPickInvoke].h = canvasMap[common.getRole(mySoldierList[index].id)+"_stand"].height;
+				//preStage.invokeList[preStage.nowPickInvoke].w = canvasMap[common.getRole(mySoldierList[index].id)+"_stand"].width/3;
+				//preStage.invokeList[preStage.nowPickInvoke].h = canvasMap[common.getRole(mySoldierList[index].id)+"_stand"].height;
 				mySoldierList[index].isPicked = true ;
 				preStage.isShowChooseSoldier = false ;
 				preStage.invokeList[preStage.nowPickInvoke].x += 24 ;
