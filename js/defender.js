@@ -1796,7 +1796,8 @@ var Defender = (function(){
 				preStage.setMouseEnterResetButtonOver() ;
 				return ;
 			} else if ( common.isMouseEnterRange(temp,preStage.confirmButton.x,preStage.confirmButton.y,preStage.confirmButton.w,preStage.confirmButton.h,offsetX,offsetY,ratio) ){
-				preStage.setMouseEnterConfirmButtonOver() ;
+				if ( stage.isGameWin === false ) 
+					preStage.setMouseEnterConfirmButtonOver() ;
 				return ;
 			}
 			common.setMouseEnterNone();
@@ -1820,7 +1821,8 @@ var Defender = (function(){
 				if ( isGameStart === false )
 					preStage.setMouseEnterConfirmButtonClick() ;				
 				else {
-					preStage.setMouseEnterRestartButtonClick() ;
+					if ( stage.isGameWin === false ) 
+						preStage.setMouseEnterRestartButtonClick() ;
 				}
 				return ;
 			}
@@ -1895,7 +1897,8 @@ var Defender = (function(){
 			gameCtx.drawImage(canvasMap['quit'],preStage.quitButton.x,preStage.quitButton.y);
 		},
 		showRestartButton : function(){
-			gameCtx.drawImage(canvasMap['restart'],preStage.restartButton.x,preStage.restartButton.y);
+			if ( stage.isGameWin === false ) 
+				gameCtx.drawImage(canvasMap['restart'],preStage.restartButton.x,preStage.restartButton.y);
 		},
 		showSoldierRange : function(){
 			/*
@@ -2363,7 +2366,6 @@ var Defender = (function(){
 		detectGame : function(){
 			if ( stage.isGameOver === true ){
 				stage.toGameOver();
-
 			} else if ( stage.isGameWin === true ){
 				stage.toGameWin();
 			}
