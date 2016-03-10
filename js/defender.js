@@ -8,7 +8,7 @@ var Defender = (function(){
 	var IE = "ActiveXObject" in window ;
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
-	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail",
+	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart",
 	"archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
 	"magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1",
 	"rogue_stand","rogue_attack","rogue_hit","rogue_attack_effect","rogue_skill0_icon","rogue_skill0_hit","rogue_skill0_effect","rogue_skill0","rogue_skill0_hit_effect","rogue_skill1_icon","rogue_skill1_hit","rogue_skill1_effect","rogue_skill1",
@@ -839,7 +839,7 @@ var Defender = (function(){
 					canvas : canvasMap["swordman_skill1"] ,
 					nowFrame : 0 ,
 					totalFrame : 3 ,
-					delay : 10 ,
+					delay : 13 ,
 					timer : 0 ,
 					effectFrame : [2] ,
 					effectBoolean : [false],
@@ -1652,6 +1652,8 @@ var Defender = (function(){
 		background : {} ,
 		resetButton : {} ,
 		confirmButton : {} ,
+		quitButton : {} ,
+		restartButton : {} ,
 		init : function(){
 			common.initSoldierMap();
 			common.initMonsterMap();
@@ -1673,10 +1675,12 @@ var Defender = (function(){
 			background = { x:0 , y:0 , w: canvasMap['background'].width , h: canvasMap['background'].height} ;
 		},
 		initResetButton : function(){
-			preStage.resetButton = { x : 500 , y : 100 , w : canvasMap['reset'].width , h : canvasMap['reset'].height } ;
+			preStage.resetButton = { x : 610 , y : 700 , w : canvasMap['reset'].width , h : canvasMap['reset'].height } ;
+			preStage.quitButton = { x : 810 , y : 700 , w : canvasMap['quit'].width , h : canvasMap['quit'].height } ;
 		},
 		initConfirmButton : function(){
-			preStage.confirmButton = { x : 200 , y : 100 , w : canvasMap['confirm'].width , h : canvasMap['confirm'].height } ;
+			preStage.confirmButton = { x : 410 , y : 700 , w : canvasMap['confirm'].width , h : canvasMap['confirm'].height } ;
+			preStage.restartButton = { x : 410 , y : 700 , w : canvasMap['restart'].width , h : canvasMap['restart'].height } ;
 		},
 		initInvoke : function(){
 			if ( preStage.isInitInvoke === true )
@@ -1729,6 +1733,16 @@ var Defender = (function(){
 				preStage.initInvoke();	
 			}
 		},
+		setMouseEnterRestartButtonClick: function(){
+			monsterList = [];
+			nowPage = "preStage" ;
+			isGameStart = false ;
+			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
+				mySoldierList[i].isPicked = false ;
+			} 
+			preStage.isInitInvoke = false ;
+			preStage.initInvoke();	
+		},
 		setMouseEnterSoldierOver: function(index){
 			document.body.style.cursor = "pointer" ;
 			mouseOver = 'soldier' + index ;
@@ -1775,7 +1789,11 @@ var Defender = (function(){
 				preStage.setMouseEnterResetButtonClick() ;
 				return ;
 			} else if ( common.isMouseEnterRange(temp,preStage.confirmButton.x,preStage.confirmButton.y,preStage.confirmButton.w,preStage.confirmButton.h,offsetX,offsetY,ratio) ){
-				preStage.setMouseEnterConfirmButtonClick() ;
+				if ( isGameStart === false )
+					preStage.setMouseEnterConfirmButtonClick() ;				
+				else {
+					preStage.setMouseEnterRestartButtonClick() ;
+				}
 				return ;
 			}
 			preStage.isPickSoldier = null ;
@@ -1844,6 +1862,12 @@ var Defender = (function(){
 		},
 		showConfirmButton : function(){
 			gameCtx.drawImage(canvasMap['confirm'],preStage.confirmButton.x,preStage.confirmButton.y);
+		},
+		showQuitButton : function(){
+			gameCtx.drawImage(canvasMap['quit'],preStage.quitButton.x,preStage.quitButton.y);
+		},
+		showRestartButton : function(){
+			gameCtx.drawImage(canvasMap['restart'],preStage.restartButton.x,preStage.restartButton.y);
 		},
 		showSoldierRange : function(){
 			/*
@@ -1949,6 +1973,7 @@ var Defender = (function(){
 			preStage.showDescription();
 			preStage.showResetButton();
 			preStage.showConfirmButton();
+			preStage.showQuitButton();
 			preStage.showInvoke();
 			if ( preStage.isShowChooseSoldier === true )
 				preStage.pickSoldier.showAll() ;
@@ -1989,7 +2014,7 @@ var Defender = (function(){
 				}
 			} , 
 			initCloseButton : function(){
-				preStage.pickSoldier.closeButton = { x : 100 , y : 100 , w : canvasMap['close'].width , h : canvasMap['close'].height } ;
+				preStage.pickSoldier.closeButton = { x : 990 , y : 160 , w : canvasMap['close'].width , h : canvasMap['close'].height } ;
 			},
 			setMouseEnterPickSoldierOver : function(index){
 				document.body.style.cursor = "pointer" ;
@@ -2321,9 +2346,23 @@ var Defender = (function(){
 		init : function(){
 			stage.initWin();
 			isGameStart = true ;
+			common.createAnimation({
+				canvas : canvasMap["start"] ,
+				x : 440  ,
+				y : 310,
+				nowFrame : 0 ,
+				timer : 0 ,
+				delay : 5 ,
+				totalFrame : 7 ,
+				width : canvasMap["start"].width / 7  , 
+				height : canvasMap["start"].height  
+			});
 		},
 		stage1 : {
 			initMonsterList : function(){
+				monsterList = [] ;
+				stage.addMonsterTimer = 0 ;
+				stage.monsterAllList = [] ;
 				/*
 				for ( var i = 0 ; i < 10 ; i ++ ){
 					stage.monsterAllList.push(common.clone(monsterMap['bat']));
@@ -2364,6 +2403,8 @@ var Defender = (function(){
 				stage.detectGame();
 				stage.showLevelUp();
 				stage.showAnimation();
+				preStage.showRestartButton();
+				preStage.showQuitButton();
 			}
 		}
 	}
