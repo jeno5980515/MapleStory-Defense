@@ -8,7 +8,7 @@ var Defender = (function(){
 	var IE = "ActiveXObject" in window ;
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
-	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","gameover","win","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2",
+	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail",
 	"archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
 	"magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1",
 	"rogue_stand","rogue_attack","rogue_hit","rogue_attack_effect","rogue_skill0_icon","rogue_skill0_hit","rogue_skill0_effect","rogue_skill0","rogue_skill0_hit_effect","rogue_skill1_icon","rogue_skill1_hit","rogue_skill1_effect","rogue_skill1",
@@ -19,8 +19,8 @@ var Defender = (function(){
 	var imgMap = {} ;
 	var canvasMap = {} ;
 	var canvasWidth = 1350 , canvasHeight = 780 ;
-	var roadBottomY = 450 ;
-	var roadTopY = 230 ;
+	var roadBottomY = 470 ;
+	var roadTopY = 210 ;
 	var nowPage = 'loadPage' ; 
 	var nowStage = 'stage1' ;
 	var mySoldierList = [] ;
@@ -199,7 +199,7 @@ var Defender = (function(){
 					hitDx : 0 ,
 					hitDy : 27 ,
 					offsetX : 0 ,
-					offsetY : 0 
+					offsetY : -5 
 				} , 
 				f : common.createSkillFunctionActive({
 					state : "doubleArrow" ,
@@ -295,6 +295,8 @@ var Defender = (function(){
 				attackEffectDy : 45 ,
 				attackAnimationFrame: 1,
 				attackAnimationBeginFrame:1,
+				standOffsetY : -5 ,
+				attackOffsetY : -5 ,
 				hitDx : 5 ,
 				hitDy : 45 ,
 				skill : [doubleArrow,criticalArrow] ,
@@ -471,7 +473,7 @@ var Defender = (function(){
 						}
 					},
 					getTargetFunction : function(x,y,range,state,canvas,target){
-						var count = 0 , r = 70 ;
+						var count = 0 , r = 100 ;
 						for ( var i = 0 ; i < monsterList.length  ; i ++ ){
 							if ( Math.abs(monsterList[i].x-x) <= range && monsterList[i].hitAble === true ){
 								var mx = monsterList[i].x ;
@@ -800,7 +802,7 @@ var Defender = (function(){
 						}
 					},
 					getTargetFunction : function(x,y,range,state,canvas,target){
-						var count = 0 , r = 100 ;
+						var count = 0 , r = 150 ;
 						for ( var i = 0 ; i < monsterList.length  ; i ++ ){
 							if ( Math.abs(monsterList[i].x-x) <= range && monsterList[i].hitAble === true ){
 								var mx = monsterList[i].x ;
@@ -1299,7 +1301,7 @@ var Defender = (function(){
 				effectTotalFrame : data.effectTotalFrame || 1 ,
 				transferLevel : data.transferLevel || 99999 ,
 				nowExp : 0 ,
-				goalExp : 0 ,
+				goalExp : 10 ,
 				isPicked : data.isPicked || false ,
 				point : 0 ,	// remain skill point
 				skill : data.skill || [] ,
@@ -1878,6 +1880,7 @@ var Defender = (function(){
 			*/
 		},
 		showSoldierDetail : function(){
+			/*
 			for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ){
 				if ( preStage.isPickSoldier === i ) {
 					var soldier = preStage.invokeList[i] ;
@@ -1906,9 +1909,10 @@ var Defender = (function(){
 					return; ; 
 				}
 			}
+			*/
 		},
 		showSoldierOver : function(){
-
+			/*
 			for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ){
 				if ( mouseOver === 'soldier' + i ) {
 					var soldier = preStage.invokeList[i] ;
@@ -1937,6 +1941,7 @@ var Defender = (function(){
 					return; ; 
 				}
 			}
+			*/
 		},
 		showAll : function(){
 			common.setMouseEvent(preStage.mouseOver,preStage.mouseClick);
@@ -1958,7 +1963,7 @@ var Defender = (function(){
 			stage.soldierEvent();
 		},
 		showDescription : function(){
-			gameCtx.drawImage(canvasMap['description'],0,600);
+			//gameCtx.drawImage(canvasMap['description'],0,600);
 		},
 		pickSoldier : {
 			pickSoldierList : [] ,
@@ -1970,11 +1975,16 @@ var Defender = (function(){
 				preStage.pickSoldier.initCloseButton();
 			} ,
 			initSoldierList : function(){
-				for ( var i = 0 , j = 0; i < mySoldierList.length ; i ++ ){
+				var y1 = 189 , y2 = 396 ;
+				var x = 0 , y = y1 ;
+				for ( var i = 0 , j = 0 , k = 0 ; i < mySoldierList.length ; i ++ ){
 					if ( mySoldierList[i].isPicked === false ){
-						var x = j*200+500 , y = 250 ;
+						x = j*165+349  ;
 						preStage.pickSoldier.pickSoldierList.push({x:x,y:y,w:canvasMap['choose_soldier_back'].width,h:canvasMap['choose_soldier_back'].height,soldierIndex:i});
 						j ++ ;
+						if ( j >= 4 ){
+							 j = 0 , y = y2 ;
+						}
 					}
 				}
 			} , 
@@ -2052,16 +2062,30 @@ var Defender = (function(){
 			},
 			showMySoldierInfo: function(pickIndex,soldierIndex){
 				var role = common.getRole(mySoldierList[soldierIndex].id) ;
-				var x = preStage.pickSoldier.pickSoldierList[pickIndex].x ;
-				var y = preStage.pickSoldier.pickSoldierList[pickIndex].y ;
-				gameCtx.font="30px Arial";
-				//gameCtx.drawImage(canvasMap[role+"_stand"],x,150);
+				var x = preStage.pickSoldier.pickSoldierList[pickIndex].x + 53;
+				var y = preStage.pickSoldier.pickSoldierList[pickIndex].y + 45;
+				gameCtx.font="12px Courier New";
+				gameCtx.fillStyle = "white" ;
+				gameCtx.drawImage(canvasMap[role+"_stand"],canvasMap[role+"_stand"].width/5*mySoldierList[soldierIndex].stand.nowFrame,0,canvasMap[role+"_stand"].width/5,canvasMap[role+"_stand"].height,x+mySoldierList[soldierIndex].standOffsetX,y+mySoldierList[soldierIndex].standOffsetY,canvasMap[role+"_stand"].width/5,canvasMap[role+"_stand"].height);
+				if ( mySoldierList[soldierIndex].stand.timer < mySoldierList[soldierIndex].stand.delay  ){
+					mySoldierList[soldierIndex].stand.timer ++ ;
+				} else if ( mySoldierList[soldierIndex].stand.timer >= mySoldierList[soldierIndex].stand.delay  ){
+					mySoldierList[soldierIndex].stand.nowFrame  ++ ;
+					mySoldierList[soldierIndex].stand.timer = 0 ;
+					if ( mySoldierList[soldierIndex].stand.nowFrame >= mySoldierList[soldierIndex].stand.totalFrame ){
+						mySoldierList[soldierIndex].stand.nowFrame = 0 ;
+					}
+				}
+				gameCtx.fillText(roleList[mySoldierList[soldierIndex].id],x,y+98);
+				/*
 				gameCtx.fillText("Level : "+mySoldierList[soldierIndex].level,x,250) ;
 				gameCtx.fillText("Dmage : "+mySoldierList[soldierIndex].atk,x,300) ;
 				gameCtx.fillText("Speed : "+mySoldierList[soldierIndex].speed,x,350) ;
 				gameCtx.fillText("Range : "+mySoldierList[soldierIndex].range,x,400) ;
 				gameCtx.fillText("Exp : "+mySoldierList[soldierIndex].nowExp+ " / "+mySoldierList[soldierIndex].goalExp,x,450) ;
 				gameCtx.fillText("Point : "+mySoldierList[soldierIndex].point,x,500) ;
+				*/
+				/*
 				for ( var i = 0 ; i < mySoldierList[soldierIndex].skill.length ; i ++ ){
 					var skill = mySoldierList[soldierIndex].skill[i] ;
 					var canvasName = skill.canvasName ;
@@ -2070,6 +2094,7 @@ var Defender = (function(){
 					gameCtx.drawImage(canvasMap[canvasName+"_icon"],w*1,0,w,h,x,550+i*100,w,h) ;
 					gameCtx.fillText("Skill Level : "+skill.nowLevel,x,600+i*100) ;
 				}
+				*/
 			},
 			showMySoldierList :function(){
 				for ( var i = 0 , j = 0 ; i < mySoldierList.length ; i ++ ){
@@ -2086,6 +2111,7 @@ var Defender = (function(){
 
 				gameCtx.drawImage(canvasMap['choose_soldier'],canvasWidth/2-canvasMap['choose_soldier'].width/2,canvasHeight/2-canvasMap['choose_soldier'].height/2);
 				preStage.pickSoldier.showMySoldierList();
+				/*
 				for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
 					if ( mouseOver === 'pickSoldier' + i ) {
 						gameCtx.fillText(roleList[mySoldierList[i].id],100,650);
@@ -2093,6 +2119,7 @@ var Defender = (function(){
 						break ; 
 					}
 				}
+				*/
 
 				preStage.pickSoldier.showCloseButton();
 			}
@@ -2111,8 +2138,15 @@ var Defender = (function(){
 		isGameOver : false ,
 		exp : 0 ,
 		expTotal : 0 ,
+		expIsCount : false ,
+		expTimer : 0 ,
+		expDelay : 10 ,
 		addMonsterTimer : 0 ,
 		addMonsterDelay : 70 ,
+		winTimer : 0 ,
+		winDelay : 10 ,
+		winNowFrame : 0 ,
+		winTotalFrame : 3 ,
 		initExp : function(exp){
 			stage.exp = exp ;
 			stage.expTotal = exp ;
@@ -2138,7 +2172,19 @@ var Defender = (function(){
 			for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ) {
 				if ( preStage.invokeList[i].soldier.id !== -1 ){
 					if ( preStage.invokeList[i].isLevelUp === true ){
-						gameCtx.fillText("Level Up !!",preStage.invokeList[i].x,preStage.invokeList[i].y-25) ;	
+						common.createAnimation({
+							canvas : canvasMap["levelup"] ,
+							x : preStage.invokeList[i].x - 120 ,
+							y : preStage.invokeList[i].y - 260,
+							nowFrame : 0 ,
+							timer : 0 ,
+							delay : 5 ,
+							totalFrame : 21 ,
+							width : canvasMap["levelup"].width / 21  , 
+							height : canvasMap["levelup"].height  
+						});
+						preStage.invokeList[i].isLevelUp = false ;
+						//gameCtx.fillText("Level Up !!",preStage.invokeList[i].x,preStage.invokeList[i].y-25) ;	
 					}
 				}
 			}	
@@ -2148,28 +2194,46 @@ var Defender = (function(){
 			preStage.invokeList[index].isLevelUp = true ;
 			preStage.invokeList[index].soldier.nowExp = 0 ;
 			preStage.invokeList[index].soldier.level ++ ;
-			preStage.invokeList[index].soldier.goalExp = 10*(0.5+preStage.invokeList[index].soldier.level/2) ;
+			preStage.invokeList[index].soldier.goalExp = Math.round(10*(0.5+preStage.invokeList[index].soldier.level/2)) ;
 		},
 		showAddExp : function(){
+			this.expDelay = 0 ;
 			for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ) {
 				if ( preStage.invokeList[i].soldier.id !== -1 ){
-					var exp = Math.floor( preStage.invokeList[i].soldier.nowExp );
-					gameCtx.fillText(exp+'/'+preStage.invokeList[i].soldier.goalExp,preStage.invokeList[i].x,preStage.invokeList[i].y) ;
+					var exp = preStage.invokeList[i].soldier.nowExp ;
+					gameCtx.drawImage(canvasMap["exp_bar"],preStage.invokeList[i].x-8,preStage.invokeList[i].y-20);
+					var goalExp = preStage.invokeList[i].soldier.goalExp ;
+					gameCtx.drawImage(canvasMap["exp"],preStage.invokeList[i].x+1-8,preStage.invokeList[i].y+1-20,canvasMap["exp"].width*(exp/goalExp)*68,canvasMap["exp"].height-1);
 				}
 			}
-			if ( stage.exp <= 0 ){
+			if ( this.expTimer <= this.expDelay ){
+				this.expTimer ++ ;
 				return ;
 			} else {
-				var e = stage.expTotal / 100 ;
-				for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ) {
-					if ( preStage.invokeList[i].soldier.id !== -1 ){
-						preStage.invokeList[i].soldier.nowExp += e ;
-						if ( preStage.invokeList[i].soldier.nowExp >= preStage.invokeList[i].soldier.goalExp ){
-							stage.setLevelUp(i);
+				this.expTimer = 0 ;
+				if ( stage.exp <= 0 ){
+					return ;
+				} else {
+					if ( this.expIsCount === false ){
+						var count = 0 ;
+						for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ) {
+							if ( preStage.invokeList[i].soldier.id !== -1 ){
+								count ++ ;
+							}
+						}
+						this.exp = Math.round(this.exp / count) ;
+						this.expIsCount = true ;
+					}
+					for ( var i = 0 ; i < preStage.invokeList.length ; i ++ ) {
+						if ( preStage.invokeList[i].soldier.id !== -1 ){
+							preStage.invokeList[i].soldier.nowExp ++ ;
+							if ( preStage.invokeList[i].soldier.nowExp >= preStage.invokeList[i].soldier.goalExp ){
+								stage.setLevelUp(i);
+							}
 						}
 					}
+					this.exp -- ;
 				}
-				stage.exp -= e ;
 			}
 		},
 		addMonster : function(){
@@ -2186,6 +2250,14 @@ var Defender = (function(){
 			}
 		},
 		showMonster : function(){
+			monsterList.sort(function(a, b){
+			    var keyA = a.x,
+			        keyB = b.x;
+			    // Compare the 2 dates
+			    if(keyA > keyB) return -1;
+			    if(keyA < keyB) return 1;
+			    return 0;
+			});
 			for ( var i = 0 ; i < monsterList.length ; i ++ ){
 				if ( monsterList[i].nowHp <= 0 ){
 					monsterList[i].isDie() ;
@@ -2210,27 +2282,43 @@ var Defender = (function(){
 			}
 		},
 		toGameOver : function(){
-			gameCtx.drawImage(canvasMap['gameover'],stage.gameOver.x,stage.gameOver.y);
+			this.winTotalFrame = 10 ;
+			this.winDelay = 5 ;
+			gameCtx.drawImage(canvasMap['fail'],this.winNowFrame*canvasMap['fail'].width/10,0,canvasMap['fail'].width/10,canvasMap['fail'].height,stage.win.x+100,stage.win.y+100,canvasMap['fail'].width/10,canvasMap['fail'].height);
+			if ( this.winTimer <= this.winDelay ){
+				this.winTimer ++ ;
+				return ;
+			} else {
+				this.winTimer = 0 ;
+				this.winNowFrame ++ ;
+				if ( this.winNowFrame >= this.winTotalFrame  )
+					this.winNowFrame = 0 ;
+			}
 		},
 		toGameWin : function(){
-			gameCtx.drawImage(canvasMap['win'],stage.win.x,stage.win.y);
+			this.winTotalFrame = 3 ;
+			gameCtx.drawImage(canvasMap['clear'],this.winNowFrame*canvasMap['clear'].width/3,0,canvasMap['clear'].width/3,canvasMap['clear'].height,stage.win.x,stage.win.y,canvasMap['clear'].width/3,canvasMap['clear'].height);
+			if ( this.winTimer <= this.winDelay ){
+				this.winTimer ++ ;
+			} else {
+				this.winTimer = 0 ;
+				if ( this.winNowFrame < this.winTotalFrame - 1 )
+					this.winNowFrame ++ ;
+			}
 			stage.showAddExp();
 		},
 		detectGame : function(){
 			if ( stage.isGameOver === true ){
 				stage.toGameOver();
+
 			} else if ( stage.isGameWin === true ){
 				stage.toGameWin();
 			}
 		},
-		initGameOver : function(){
-			stage.gameOver = { x: 300 , y : 300 , w : canvasMap['gameover'].width , h:canvasMap['gameover'].height} ;
-		},
 		initWin : function(){
-			stage.win = { x: 300 , y : 300 , w : canvasMap['win'].width , h:canvasMap['win'].height} ;
+			stage.win = { x: 350 , y : 230 , w : canvasMap['clear'].width/3 , h:canvasMap['clear'].height} ;
 		},
 		init : function(){
-			stage.initGameOver();
 			stage.initWin();
 			isGameStart = true ;
 		},
@@ -2241,7 +2329,7 @@ var Defender = (function(){
 					stage.monsterAllList.push(common.clone(monsterMap['bat']));
 				}
 				*/
-				for ( var i = 0 ; i < 10 ; i ++ ){
+				for ( var i = 0 ; i < 3 ; i ++ ){
 					stage.monsterAllList.push(common.clone(monsterMap['snail']));
 					stage.monsterAllList.push(common.clone(monsterMap['bat']));
 					stage.monsterAllList.push(common.clone(monsterMap['ironhog']));
@@ -2251,7 +2339,7 @@ var Defender = (function(){
 			},
 			init : function(){
 				stage.init();
-				stage.initExp(10);
+				stage.initExp(100);
 				stage.stage1.initMonsterList();
 			},
 			showBackground : function(){
