@@ -162,6 +162,7 @@ var Defender = (function(){
 				attackEffectDy : 5 ,
 				attackAnimationFrame: 1,
 				attackAnimationBeginFrame:2,
+				attackOffsetX : -3 ,
 				attackType : ["physical"]
 			}) ;
 			soldierMap['beginner'] = beginner ;
@@ -828,7 +829,7 @@ var Defender = (function(){
 				nowLevel : 1 ,
 				effect : [] ,
 				speed : 300 ,
-				timer : 500 ,
+				timer : 300 ,
 				target : [] ,
 				type : "active" ,
 				ratio : 1.5 ,				
@@ -1326,6 +1327,16 @@ var Defender = (function(){
 					this.setStateCanvas();
 					return this ;
 				},
+				reset : function(){
+					this.state = "stand" ;
+					this.effect = [] ;
+					this.tempSpeed = this.speed ;
+					this.atkTimer = this.stand.timer = this.stand.nowFrame = this.attack.timer = this.attack.nowFrame = 0 ;
+					this.attack.animationBoolean = false ;
+					for ( var i = 0 ; i < this.skill.length ; i ++ ){
+						this.skill[i].reset(); 
+					}
+				},
 				isAttack : function(x,y){
 					if ( stage.isGameOver === true || stage.isGameWin === true )
 						return ;
@@ -1479,8 +1490,23 @@ var Defender = (function(){
 			}
 			if ( data.canvas !== undefined ){
 				skill["canvas"] = data.canvas ;
+				skill.reset = function(){
+					this.timer = this.speed ;
+					this.target = [] ;
+					this.canvas.nowFrame = 0 ;
+					this.canvas.timer = 0 ;
+					for ( var i = 0 ; i < this.canvas.effectBoolean.length ; i ++ ){
+						this.canvas.effectBoolean[i] = false ;
+					} 
+					for ( var i = 0 ; i < this.canvas.animationBoolean.length ; i ++ ){
+						this.canvas.animationBoolean[i] = false ;
+					} 
+				}
 			} else {
 				skill["init"] = data.init ;
+				skill.reset = function(){
+					this.isInit = false ;
+				}
 			}
 			return skill ;
 		},
@@ -1739,7 +1765,9 @@ var Defender = (function(){
 			isGameStart = false ;
 			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
 				mySoldierList[i].isPicked = false ;
+				mySoldierList[i].reset();
 			} 
+			animationList = [] ;
 			preStage.isInitInvoke = false ;
 			preStage.initInvoke();	
 		},
