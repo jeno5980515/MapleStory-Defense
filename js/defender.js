@@ -1763,6 +1763,7 @@ var Defender = (function(){
 			monsterList = [];
 			nowPage = "preStage" ;
 			isGameStart = false ;
+			isGameOver = false ;
 			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
 				mySoldierList[i].isPicked = false ;
 				mySoldierList[i].reset();
