@@ -8,7 +8,7 @@ var Defender = (function(){
 	var IE = "ActiveXObject" in window ;
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
-	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart",
+	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart","info","info_back","info_card","info_close",
 	"archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
 	"magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1",
 	"rogue_stand","rogue_attack","rogue_hit","rogue_attack_effect","rogue_skill0_icon","rogue_skill0_hit","rogue_skill0_effect","rogue_skill0","rogue_skill0_hit_effect","rogue_skill1_icon","rogue_skill1_hit","rogue_skill1_effect","rogue_skill1",
@@ -33,6 +33,7 @@ var Defender = (function(){
 	var soldierMap = {} ; 
 	var monsterMap = {} ;
 	var monsterList = [] ;
+	var monsterTypeList = [] ;
 	var animationList = [] ;
 	var isGameStart = false ;
 	var invokeAnimationTimer = 0 , invokeAnimationDelay = 5 , invokeAnimationNowFrame = 0 , invokeAnimationTotalFrame = 8 ;
@@ -40,6 +41,17 @@ var Defender = (function(){
 	var common = {
 		createAnimation : function(obj){
 			animationList.push(obj);
+		},
+		loopAnimation : function(obj){
+			if ( obj.timer < obj.delay  ){
+				obj.timer ++ ;
+			} else if ( obj.timer >= obj.delay  ){
+				obj.nowFrame  ++ ;
+				obj.timer = 0 ;
+				if ( obj.nowFrame >= obj.totalFrame ){
+					obj.nowFrame = 0 ;
+				}
+			}
 		},
 		cloneCanvas : function(canvas){
 			var newCanvas = document.createElement("canvas") ;
@@ -937,7 +949,9 @@ var Defender = (function(){
 				speed: 1,
 				moveFrame: 9,
 				hitFrame: 1,
-				dieFrame: 9
+				dieFrame: 9,
+				offsetX : 20 ,
+				offsetY : -3 ,
 			});
 			monsterMap['snail'] = snail ;
 
@@ -950,7 +964,8 @@ var Defender = (function(){
 				hitFrame: 1,
 				dieFrame: 4,
 				dieDx : 25 ,
-				offsetY : -30 ,
+				offsetY : -25 ,
+				offsetX : 10 ,
 				attribute:[{
 					name : "sky" ,
 					ratio : 1.3 
@@ -1672,6 +1687,7 @@ var Defender = (function(){
 	var preStage = {
 		invokeList : [] ,
 		isShowChooseSoldier : false ,
+		isShowInfo : false ,
 		isInitInvoke : false ,
 		isPickSoldier : null ,
 		nowPickInvoke : null ,
@@ -1680,6 +1696,7 @@ var Defender = (function(){
 		confirmButton : {} ,
 		quitButton : {} ,
 		restartButton : {} ,
+		infoButton : {} ,
 		init : function(){
 			common.initSoldierMap();
 			common.initMonsterMap();
@@ -1688,9 +1705,11 @@ var Defender = (function(){
 			preStage.isShowChooseSoldier = false ;
 			preStage.isPickSoldier = null ;
 			preStage.initBackground();
-			preStage.initResetButton();
-			preStage.initConfirmButton();
-			preStage.initInvoke();	
+			preStage.initButton();
+			preStage.initInvoke();
+			//
+			stage[nowStage].initMonsterList();
+			preStage.monsterInfo.init();	
 		},
 		setMouseEvent : function(a, b) {
 	        document.onclick = b;
@@ -1700,13 +1719,12 @@ var Defender = (function(){
 		initBackground : function(){
 			background = { x:0 , y:0 , w: canvasMap['background'].width , h: canvasMap['background'].height} ;
 		},
-		initResetButton : function(){
+		initButton : function(){
 			preStage.resetButton = { x : 610 , y : 700 , w : canvasMap['reset'].width , h : canvasMap['reset'].height } ;
 			preStage.quitButton = { x : 810 , y : 700 , w : canvasMap['quit'].width , h : canvasMap['quit'].height } ;
-		},
-		initConfirmButton : function(){
 			preStage.confirmButton = { x : 410 , y : 700 , w : canvasMap['confirm'].width , h : canvasMap['confirm'].height } ;
 			preStage.restartButton = { x : 410 , y : 700 , w : canvasMap['restart'].width , h : canvasMap['restart'].height } ;
+			preStage.infoButton = { x : 1110 , y : 695 , w : canvasMap['info'].width / 12, h : canvasMap['info'].height , nowFrame : 0 , totalFrame : 12 , timer : 0 , delay : 5 } ;
 		},
 		initInvoke : function(){
 			if ( preStage.isInitInvoke === true )
@@ -1750,6 +1768,18 @@ var Defender = (function(){
 			mouseOver = 'confirmButton' ;
 			preStage.toStage();
 		},
+		setMouseEnterInfoButtonOver: function(){
+			if ( isGameStart === false ){
+				document.body.style.cursor = "pointer" ;
+				mouseOver = 'infoButton' ;
+			}
+		},
+		setMouseEnterInfoButtonClick: function(){
+			if ( isGameStart === false ){
+				document.body.style.cursor = "default" ;
+				preStage.isShowInfo = true ;
+			}
+		},
 		setMouseEnterResetButtonClick: function(){
 			if ( isGameStart === false ){
 				for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
@@ -1772,6 +1802,8 @@ var Defender = (function(){
 			animationList = [] ;
 			preStage.isInitInvoke = false ;
 			preStage.initInvoke();	
+			stage[nowStage].initMonsterList();	
+
 		},
 		setMouseEnterSoldierOver: function(index){
 			document.body.style.cursor = "pointer" ;
@@ -1801,7 +1833,10 @@ var Defender = (function(){
 				if ( stage.isGameWin === false ) 
 					preStage.setMouseEnterConfirmButtonOver() ;
 				return ;
-			}
+			} else if ( common.isMouseEnterRange(temp,preStage.infoButton.x,preStage.infoButton.y,preStage.infoButton.w,preStage.infoButton.h,offsetX,offsetY,ratio) ){
+				preStage.setMouseEnterInfoButtonOver() ;
+				return ;
+			} 
 			common.setMouseEnterNone();
 		},
 		detectMouseEnterClick: function(temp,offsetX,offsetY,ratio){
@@ -1827,7 +1862,10 @@ var Defender = (function(){
 						preStage.setMouseEnterRestartButtonClick() ;
 				}
 				return ;
-			}
+			} else if ( common.isMouseEnterRange(temp,preStage.infoButton.x,preStage.infoButton.y,preStage.infoButton.w,preStage.infoButton.h,offsetX,offsetY,ratio) ){
+				preStage.setMouseEnterInfoButtonClick() ;
+				return ;
+			} 
 			preStage.isPickSoldier = null ;
 			common.setMouseEnterNone();
 		},
@@ -1889,18 +1927,18 @@ var Defender = (function(){
 				gameCtx.drawImage(canvasMap['bg_'+nowStage+"_path_bottom"],i*canvasMap['bg_'+nowStage+"_path_bottom"].width,canvasMap['bg_'+nowStage+"_path_top"].height+canvasMap['bg_'+nowStage+"_path_mid"].height+380);
 			}
 		},
-		showResetButton : function(){
-			gameCtx.drawImage(canvasMap['reset'],preStage.resetButton.x,preStage.resetButton.y);
-		},
-		showConfirmButton : function(){
-			gameCtx.drawImage(canvasMap['confirm'],preStage.confirmButton.x,preStage.confirmButton.y);
-		},
-		showQuitButton : function(){
+		showButton : function(){
+			if ( isGameStart === false )
+				gameCtx.drawImage(canvasMap['reset'],preStage.resetButton.x,preStage.resetButton.y);
+			if ( isGameStart === false )
+				gameCtx.drawImage(canvasMap['confirm'],preStage.confirmButton.x,preStage.confirmButton.y);
 			gameCtx.drawImage(canvasMap['quit'],preStage.quitButton.x,preStage.quitButton.y);
-		},
-		showRestartButton : function(){
-			if ( stage.isGameWin === false ) 
+			if ( stage.isGameWin === false && isGameStart === true ) 
 				gameCtx.drawImage(canvasMap['restart'],preStage.restartButton.x,preStage.restartButton.y);
+			if ( isGameStart === false ){
+				gameCtx.drawImage(canvasMap['info'],preStage.infoButton.nowFrame*preStage.infoButton.w,0,preStage.infoButton.w,preStage.infoButton.h,preStage.infoButton.x,preStage.infoButton.y,preStage.infoButton.w,preStage.infoButton.h);
+				common.loopAnimation(preStage.infoButton);
+			}
 		},
 		showSoldierRange : function(){
 			/*
@@ -2004,12 +2042,13 @@ var Defender = (function(){
 			common.setMouseEvent(preStage.mouseOver,preStage.mouseClick);
 			preStage.showBackground();
 			preStage.showDescription();
-			preStage.showResetButton();
-			preStage.showConfirmButton();
-			preStage.showQuitButton();
+			preStage.showButton();
 			preStage.showInvoke();
 			if ( preStage.isShowChooseSoldier === true )
 				preStage.pickSoldier.showAll() ;
+			else if ( preStage.isShowInfo === true ){
+				preStage.monsterInfo.showAll() ;
+			}
 			if ( preStage.isPickSoldier !== null ) {
 				preStage.showSoldierDetail();
 			}
@@ -2077,28 +2116,56 @@ var Defender = (function(){
 				preStage.isShowChooseSoldier = false ;
 			},
 			detectMouseEnterClick : function(temp,offsetX,offsetY,ratio){
-				for ( var i = 0 ; i < preStage.pickSoldier.pickSoldierList.length ; i ++ ){
-					if ( common.isMouseEnterRange(temp,preStage.pickSoldier.pickSoldierList[i].x,preStage.pickSoldier.pickSoldierList[i].y,preStage.pickSoldier.pickSoldierList[i].w,preStage.pickSoldier.pickSoldierList[i].h,offsetX,offsetY,ratio) ){
-						preStage.pickSoldier.setMouseEnterPickSoldierClick(preStage.pickSoldier.pickSoldierList[i].soldierIndex) ;
+				if ( preStage.isShowChooseSoldier === true ){
+					for ( var i = 0 ; i < preStage.pickSoldier.pickSoldierList.length ; i ++ ){
+						if ( common.isMouseEnterRange(temp,preStage.pickSoldier.pickSoldierList[i].x,preStage.pickSoldier.pickSoldierList[i].y,preStage.pickSoldier.pickSoldierList[i].w,preStage.pickSoldier.pickSoldierList[i].h,offsetX,offsetY,ratio) ){
+							preStage.pickSoldier.setMouseEnterPickSoldierClick(preStage.pickSoldier.pickSoldierList[i].soldierIndex) ;
+							return ;
+						}
+					}
+					if ( common.isMouseEnterRange(temp,preStage.pickSoldier.closeButton.x,preStage.pickSoldier.closeButton.y,preStage.pickSoldier.closeButton.w,preStage.pickSoldier.closeButton.h,offsetX,offsetY,ratio) ){
+						preStage.pickSoldier.setMouseEnterCloseButtonClick(i) ;
 						return ;
 					}
-				}
-				if ( common.isMouseEnterRange(temp,preStage.pickSoldier.closeButton.x,preStage.pickSoldier.closeButton.y,preStage.pickSoldier.closeButton.w,preStage.pickSoldier.closeButton.h,offsetX,offsetY,ratio) ){
-					preStage.pickSoldier.setMouseEnterCloseButtonClick(i) ;
-					return ;
+				} else if ( preStage.isShowInfo === true ){
+					for ( var i = 0 ; i < preStage.monsterInfo.monsterInfoList.length ; i ++ ){
+						if ( common.isMouseEnterRange(temp,preStage.monsterInfo.monsterInfoList[i].x,preStage.monsterInfo.monsterInfoList[i].y,preStage.monsterInfo.monsterInfoList[i].w,preStage.monsterInfo.monsterInfoList[i].h,offsetX,offsetY,ratio) ){
+							preStage.monsterInfo.setMouseEnterPickSoldierClick(i) ;
+							return ;
+						}
+					}
+					if ( common.isMouseEnterRange(temp,preStage.monsterInfo.closeButton.x,preStage.monsterInfo.closeButton.y,preStage.monsterInfo.closeButton.w,preStage.monsterInfo.closeButton.h,offsetX,offsetY,ratio) ){
+						preStage.monsterInfo.setMouseEnterCloseButtonClick(i) ;
+						return ;
+					}
+					mouseOver = "none" ;
 				}
 				common.setMouseEnterNone();
 			},
 			detectMouseEnterOver : function(temp,offsetX,offsetY,ratio){
-				for ( var i = 0 ; i < preStage.pickSoldier.pickSoldierList.length ; i ++ ){
-					if ( common.isMouseEnterRange(temp,preStage.pickSoldier.pickSoldierList[i].x,preStage.pickSoldier.pickSoldierList[i].y,preStage.pickSoldier.pickSoldierList[i].w,preStage.pickSoldier.pickSoldierList[i].h,offsetX,offsetY,ratio) ){
-						preStage.pickSoldier.setMouseEnterPickSoldierOver(preStage.pickSoldier.pickSoldierList[i].soldierIndex) ;
+				if ( preStage.isShowChooseSoldier === true ){
+					for ( var i = 0 ; i < preStage.pickSoldier.pickSoldierList.length ; i ++ ){
+						if ( common.isMouseEnterRange(temp,preStage.pickSoldier.pickSoldierList[i].x,preStage.pickSoldier.pickSoldierList[i].y,preStage.pickSoldier.pickSoldierList[i].w,preStage.pickSoldier.pickSoldierList[i].h,offsetX,offsetY,ratio) ){
+							preStage.pickSoldier.setMouseEnterPickSoldierOver(preStage.pickSoldier.pickSoldierList[i].soldierIndex) ;
+							return ;
+						}
+					}
+					if ( common.isMouseEnterRange(temp,preStage.pickSoldier.closeButton.x,preStage.pickSoldier.closeButton.y,preStage.pickSoldier.closeButton.w,preStage.pickSoldier.closeButton.h,offsetX,offsetY,ratio) ){
+						preStage.pickSoldier.setMouseEnterCloseButtonOver(i) ;
 						return ;
 					}
-				}
-				if ( common.isMouseEnterRange(temp,preStage.pickSoldier.closeButton.x,preStage.pickSoldier.closeButton.y,preStage.pickSoldier.closeButton.w,preStage.pickSoldier.closeButton.h,offsetX,offsetY,ratio) ){
-					preStage.pickSoldier.setMouseEnterCloseButtonOver(i) ;
-					return ;
+				} else if ( preStage.isShowInfo === true ){
+					for ( var i = 0 ; i < preStage.monsterInfo.monsterInfoList.length ; i ++ ){
+						if ( common.isMouseEnterRange(temp,preStage.monsterInfo.monsterInfoList[i].x,preStage.monsterInfo.monsterInfoList[i].y,preStage.monsterInfo.monsterInfoList[i].w,preStage.monsterInfo.monsterInfoList[i].h,offsetX,offsetY,ratio) ){
+							preStage.monsterInfo.setMouseEnterPickSoldierOver(i) ;
+							return ;
+						}
+					}
+					if ( common.isMouseEnterRange(temp,preStage.monsterInfo.closeButton.x,preStage.monsterInfo.closeButton.y,preStage.monsterInfo.closeButton.w,preStage.monsterInfo.closeButton.h,offsetX,offsetY,ratio) ){
+						preStage.monsterInfo.setMouseEnterCloseButtonOver(i) ;
+						return ;
+					}
+					mouseOver = "none" ;
 				}
 				common.setMouseEnterNone();
 			},
@@ -2164,23 +2231,111 @@ var Defender = (function(){
 				}
 			},
 			showAll: function(){
-
 				common.setMouseEvent(preStage.pickSoldier.mouseOver,preStage.pickSoldier.mouseClick);
-
 				gameCtx.drawImage(canvasMap['choose_soldier'],canvasWidth/2-canvasMap['choose_soldier'].width/2,canvasHeight/2-canvasMap['choose_soldier'].height/2);
 				preStage.pickSoldier.showMySoldierList();
-				/*
-				for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
-					if ( mouseOver === 'pickSoldier' + i ) {
-						gameCtx.fillText(roleList[mySoldierList[i].id],100,650);
-						gameCtx.fillText(roleDescriptionList[mySoldierList[i].id],100,700);
-						break ; 
-					}
-				}
-				*/
-
 				preStage.pickSoldier.showCloseButton();
 			}
+		},
+		monsterInfo : {
+			monsterInfoList : [] ,
+			closeButton : {} ,
+			init : function(){
+				this.monsterInfoList = [] ;
+				this.initMonsterInfoList() ;
+				this.initCloseButton();
+			},
+			initCloseButton : function(){
+				this.closeButton = { x : 1025 , y : 137 , w : canvasMap['info_close'].width , h : canvasMap['info_close'].height } ;
+			},
+			showAll: function(){
+				common.setMouseEvent(preStage.pickSoldier.mouseOver,preStage.pickSoldier.mouseClick);
+				gameCtx.drawImage(canvasMap['info_back'],canvasWidth/2-canvasMap['info_back'].width/2,canvasHeight/2-canvasMap['info_back'].height/2);
+				preStage.monsterInfo.showMonsterInfoList();
+				preStage.monsterInfo.showMonsterDetail();
+				this.showCloseButton();
+			},	
+			showCloseButton : function(){
+				gameCtx.drawImage(canvasMap['info_close'],this.closeButton.x,this.closeButton.y);
+			},	
+			showMonsterDetail : function(){
+				//need improvement
+				gameCtx.font="20px Courier New";
+				gameCtx.fillStyle = "white" ;
+				if ( mouseOver !== "none" ){
+					for ( var i = 0 ; i < monsterTypeList.length ; i ++ ){
+						if ( mouseOver === "monsterInfo" + i ){
+							gameCtx.fillText("HP : "+monsterTypeList[i].maxHp,360,460);
+							gameCtx.fillText("Speed : "+monsterTypeList[i].speed,360,510);
+							gameCtx.fillText("Defence : "+monsterTypeList[i].def,360,560);
+							for ( var j = 0 ; j < monsterTypeList[i].attribute.length ; j ++ ){
+								var type = "increase" ;
+								var ratio = monsterTypeList[i].attribute[j].ratio ;
+								ratio *= 100 ;
+								if ( monsterTypeList[i].attribute[j].ratio < 1 ){
+									type = "reduce" ;
+									ratio = 100 - ratio ;
+								} else {
+									ratio -= 100 ;
+								}
+								gameCtx.fillText("* "+monsterTypeList[i].attribute[j].name+" attack "+type+" "+ratio+"%",580,460+j*30);
+							}
+							return ;
+						}
+					}
+				}
+				
+			},			
+			showMonsterCard :function(index){
+				var x = preStage.monsterInfo.monsterInfoList[index].x ;
+				var y = preStage.monsterInfo.monsterInfoList[index].y ;
+				gameCtx.drawImage(canvasMap['info_card'],x,y) ;
+				gameCtx.drawImage(canvasMap[monsterIdList[monsterTypeList[index].id]+"_move"],monsterTypeList[index].move.nowFrame*monsterTypeList[index].move.w,0,monsterTypeList[index].move.w,monsterTypeList[index].move.h,x+monsterTypeList[index].offsetX+22,y+monsterTypeList[index].offsetY+80,monsterTypeList[index].move.w,monsterTypeList[index].move.h) ;
+				common.loopAnimation(monsterTypeList[index].move);
+			},
+			showMonsterInfoList :function(){
+				for ( var i = 0 ; i < monsterTypeList.length ; i ++ ){
+					preStage.monsterInfo.showMonsterCard(i) ;
+				}
+			},
+			initMonsterInfoList : function(){
+				var y1 = 189 ;
+				var x = 0 , y = y1 ;
+				monsterTypeList = [] ;
+				//need improvement
+				monsterTypeList.push(common.clone(stage.monsterAllList[0]));
+				for ( var i = 1  ; i < stage.monsterAllList.length ; i ++ ){
+					for ( var j = 0 ; j < monsterTypeList.length ; j ++ ){
+						if ( monsterTypeList[j].id === stage.monsterAllList[i].id ){
+							break ;
+						} else if ( j === monsterTypeList.length - 1 ){
+							monsterTypeList.push(common.clone(stage.monsterAllList[i]));
+						}
+					}
+				}
+				for ( var i = 0 , j = 0 ; i < monsterTypeList.length ; i ++ , j ++ ){
+					var x = j*122+375  , y = 200 ;
+					preStage.monsterInfo.monsterInfoList.push({x:x,y:y,w:canvasMap['info_card'].width,h:canvasMap['info_card'].height,soldierIndex:i});
+					if ( j >= 5 )
+						j = -1 ;
+				}
+			},
+			setMouseEnterPickSoldierOver : function(index){
+				document.body.style.cursor = "pointer" ;
+				mouseOver = "monsterInfo" + index ;
+			},
+			setMouseEnterPickSoldierClick : function(index){
+				document.body.style.cursor = "pointer" ;
+				mouseOver = "monsterInfo" + index ;
+			},			
+			setMouseEnterCloseButtonOver : function(index){
+				document.body.style.cursor = "pointer" ;
+				mouseOver = "closeButton" ;
+			},
+			setMouseEnterCloseButtonClick : function(index){
+				document.body.style.cursor = "default" ;
+				preStage.isShowInfo = false ;
+			},
 		}
 	};
 
@@ -2395,23 +2550,19 @@ var Defender = (function(){
 				monsterList = [] ;
 				stage.addMonsterTimer = 0 ;
 				stage.monsterAllList = [] ;
-				/*
-				for ( var i = 0 ; i < 10 ; i ++ ){
-					stage.monsterAllList.push(common.clone(monsterMap['bat']));
-				}
-				*/
 				for ( var i = 0 ; i < 3 ; i ++ ){
 					stage.monsterAllList.push(common.clone(monsterMap['snail']));
 					stage.monsterAllList.push(common.clone(monsterMap['bat']));
 					stage.monsterAllList.push(common.clone(monsterMap['ironhog']));
 				}
-
+			},
+			initMonsterIdList : function(){
 
 			},
 			init : function(){
 				stage.init();
 				stage.initExp(100);
-				stage.stage1.initMonsterList();
+				//stage.stage1.initMonsterList();
 			},
 			showBackground : function(){
 				gameCtx.drawImage(canvasMap['background'],background.x,background.y);
@@ -2435,8 +2586,7 @@ var Defender = (function(){
 				stage.detectGame();
 				stage.showLevelUp();
 				stage.showAnimation();
-				preStage.showRestartButton();
-				preStage.showQuitButton();
+				preStage.showButton();
 			}
 		}
 	}
