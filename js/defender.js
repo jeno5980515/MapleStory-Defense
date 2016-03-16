@@ -9,8 +9,9 @@ var Defender = (function(){
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
 	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart","info","info_back","info_card","info_close",
-	"bg_town_back0","bg_town_back1","bg_town_back2","bg_town_back3","bg_town_back4","bg_town_back5","bg_town_back6","bg_town_back7","box","battle",
-	"tag0","map_0",
+	"bg_town_back0","bg_town_back1","bg_town_back2","bg_town_back3","bg_town_back4","bg_town_back5","bg_town_back6","bg_town_back7",
+	"box","battle","status","choose_soldier_back2","choose_soldier2",
+	"tag0","tag1","tag2","map_0",
 	"archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
 	"magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1",
 	"rogue_stand","rogue_attack","rogue_hit","rogue_attack_effect","rogue_skill0_icon","rogue_skill0_hit","rogue_skill0_effect","rogue_skill0","rogue_skill0_hit_effect","rogue_skill1_icon","rogue_skill1_hit","rogue_skill1_effect","rogue_skill1",
@@ -37,9 +38,16 @@ var Defender = (function(){
 	var monsterTypeList = [] ;
 	var animationList = [] ;
 	var mySoldierList = [] ;
+	var doneStage = 0 ;
 	var invokeAnimationTimer = 0 , invokeAnimationDelay = 5 , invokeAnimationNowFrame = 0 , invokeAnimationTotalFrame = 8 ;
 
 	var common = {
+		drawObject : function(obj){
+			if ( obj.nowFrame === undefined )
+				gameCtx.drawImage(obj.canvas,obj.x,obj.y);
+			else 
+				gameCtx.drawImage(obj.canvas,obj.nowFrame*obj.w,0,obj.w,obj.h,obj.x,obj.y,obj.w,obj.h);
+		},
 		createAnimation : function(obj){
 			animationList.push(obj);
 		},
@@ -1795,7 +1803,6 @@ var Defender = (function(){
 			document.body.style.cursor = "pointer" ;
 		},
 		setMouseEnterQuitButtonClick: function(){
-			console.log(mySoldierList[0]);
 			document.body.style.cursor = "default" ;
 			nowPage = "town" ;
 			town.init();
@@ -1881,7 +1888,7 @@ var Defender = (function(){
 				}
 				preStage.setMouseEnterQuitButtonOver() ;
 				return ;
-			}
+			} 
 			common.setMouseEnterNone();
 		},
 		detectMouseEnterClick : function(temp,offsetX,offsetY,ratio){
@@ -2016,6 +2023,7 @@ var Defender = (function(){
 		pickSoldier : {
 			pickSoldierList : [] ,
 			closeButton : { } ,
+			chooseBack : {} ,
 			init : function(){
 				preStage.isShowChooseSoldier = true ;
 				preStage.pickSoldier.pickSoldierList = [] ;
@@ -2037,6 +2045,7 @@ var Defender = (function(){
 				}
 			} , 
 			initCloseButton : function(){
+				this.chooseBack = { x : canvasWidth/2-canvasMap['choose_soldier'].width/2 , y : canvasHeight/2-canvasMap['choose_soldier'].height/2 , w : canvasMap['choose_soldier'].width , h : canvasMap['choose_soldier'].height , canvas : canvasMap['choose_soldier'] } ;
 				preStage.pickSoldier.closeButton = { x : 990 , y : 160 , w : canvasMap['close'].width , h : canvasMap['close'].height } ;
 			},
 			setMouseEnterPickSoldierOver : function(index){
@@ -2078,6 +2087,11 @@ var Defender = (function(){
 						preStage.pickSoldier.setMouseEnterCloseButtonClick(i) ;
 						return ;
 					}
+					if ( common.isMouseEnterRange(temp,preStage.pickSoldier.chooseBack,offsetX,offsetY,ratio) ){
+						return ;
+					}
+					preStage.isShowChooseSoldier = false ;
+					mouseOver = "none" ;
 				} else if ( preStage.isShowInfo === true ){
 					for ( var i = 0 ; i < preStage.monsterInfo.monsterInfoList.length ; i ++ ){
 						if ( common.isMouseEnterRange(temp,preStage.monsterInfo.monsterInfoList[i],offsetX,offsetY,ratio) ){
@@ -2089,9 +2103,15 @@ var Defender = (function(){
 						preStage.monsterInfo.setMouseEnterCloseButtonClick(i) ;
 						return ;
 					}
-					mouseOver = "none" ;
+					if ( common.isMouseEnterRange(temp,preStage.monsterInfo.infoBack,offsetX,offsetY,ratio) ){
+						return ;
+					}
+					preStage.isShowInfo = false ;
+					if ( preStage.monsterInfo.isChooseMonster === false )
+						mouseOver = "none" ;
+				} else {
+					common.setMouseEnterNone();
 				}
-				common.setMouseEnterNone();
 			},
 			detectMouseEnterOver : function(temp,offsetX,offsetY,ratio){
 				if ( preStage.isShowChooseSoldier === true ){
@@ -2116,9 +2136,12 @@ var Defender = (function(){
 						preStage.monsterInfo.setMouseEnterCloseButtonOver(i) ;
 						return ;
 					}
-					mouseOver = "none" ;
+					if ( preStage.monsterInfo.isChooseMonster === false )
+						mouseOver = "none" ;
+					document.body.style.cursor = "default" ;
+				} else {
+					common.setMouseEnterNone();
 				}
-				common.setMouseEnterNone();
 			},
 			mouseOver : function(e){
 				var info = common.getSizeInfo(e) ;
@@ -2153,24 +2176,6 @@ var Defender = (function(){
 					}
 				}
 				gameCtx.fillText(roleList[mySoldierList[soldierIndex].id],x,y+98);
-				/*
-				gameCtx.fillText("Level : "+mySoldierList[soldierIndex].level,x,250) ;
-				gameCtx.fillText("Dmage : "+mySoldierList[soldierIndex].atk,x,300) ;
-				gameCtx.fillText("Speed : "+mySoldierList[soldierIndex].speed,x,350) ;
-				gameCtx.fillText("Range : "+mySoldierList[soldierIndex].range,x,400) ;
-				gameCtx.fillText("Exp : "+mySoldierList[soldierIndex].nowExp+ " / "+mySoldierList[soldierIndex].goalExp,x,450) ;
-				gameCtx.fillText("Point : "+mySoldierList[soldierIndex].point,x,500) ;
-				*/
-				/*
-				for ( var i = 0 ; i < mySoldierList[soldierIndex].skill.length ; i ++ ){
-					var skill = mySoldierList[soldierIndex].skill[i] ;
-					var canvasName = skill.canvasName ;
-					var w = canvasMap[canvasName+"_icon"].width / 3
-					var h = canvasMap[canvasName+"_icon"].height  ;
-					gameCtx.drawImage(canvasMap[canvasName+"_icon"],w*1,0,w,h,x,550+i*100,w,h) ;
-					gameCtx.fillText("Skill Level : "+skill.nowLevel,x,600+i*100) ;
-				}
-				*/
 			},
 			showMySoldierList :function(){
 				for ( var i = 0 , j = 0 ; i < mySoldierList.length ; i ++ ){
@@ -2183,7 +2188,7 @@ var Defender = (function(){
 			},
 			showAll: function(){
 				common.setMouseEvent(preStage.pickSoldier.mouseOver,preStage.pickSoldier.mouseClick);
-				gameCtx.drawImage(canvasMap['choose_soldier'],canvasWidth/2-canvasMap['choose_soldier'].width/2,canvasHeight/2-canvasMap['choose_soldier'].height/2);
+				common.drawObject(this.chooseBack);
 				preStage.pickSoldier.showMySoldierList();
 				preStage.pickSoldier.showCloseButton();
 			}
@@ -2191,17 +2196,21 @@ var Defender = (function(){
 		monsterInfo : {
 			monsterInfoList : [] ,
 			closeButton : {} ,
+			infoBack : {} ,
+			isChooseMonster : false ,
 			init : function(){
+				this.isChooseMonster = false ;
 				this.monsterInfoList = [] ;
 				this.initMonsterInfoList() ;
 				this.initCloseButton();
 			},
 			initCloseButton : function(){
+				this.infoBack = { x : canvasWidth/2-canvasMap['info_back'].width/2 , y : canvasHeight/2-canvasMap['info_back'].height/2 , canvas : canvasMap['info_back'] , w : canvasMap['info_back'].width , h : canvasMap['info_back'].height };
 				this.closeButton = { x : 1025 , y : 137 , w : canvasMap['info_close'].width , h : canvasMap['info_close'].height } ;
 			},
 			showAll: function(){
 				common.setMouseEvent(preStage.pickSoldier.mouseOver,preStage.pickSoldier.mouseClick);
-				gameCtx.drawImage(canvasMap['info_back'],canvasWidth/2-canvasMap['info_back'].width/2,canvasHeight/2-canvasMap['info_back'].height/2);
+				common.drawObject(this.infoBack);
 				preStage.monsterInfo.showMonsterInfoList();
 				preStage.monsterInfo.showMonsterDetail();
 				this.showCloseButton();
@@ -2274,14 +2283,15 @@ var Defender = (function(){
 			setMouseEnterPickSoldierOver : function(index){
 				document.body.style.cursor = "pointer" ;
 				mouseOver = "monsterInfo" + index ;
+				preStage.monsterInfo.isChooseMonster = true ;
 			},
 			setMouseEnterPickSoldierClick : function(index){
 				document.body.style.cursor = "pointer" ;
 				mouseOver = "monsterInfo" + index ;
+				preStage.monsterInfo.isChooseMonster = true ;
 			},			
 			setMouseEnterCloseButtonOver : function(index){
 				document.body.style.cursor = "pointer" ;
-				mouseOver = "closeButton" ;
 			},
 			setMouseEnterCloseButtonClick : function(index){
 				document.body.style.cursor = "default" ;
@@ -2556,13 +2566,20 @@ var Defender = (function(){
 		box : {} ,
 		battle : {} ,
 		map : {} ,
-		isShowMap : false ,
+		character : {} ,
+		nowTag : {} ,
+		showPage : "none" ,
+		soldierList : [] ,
+		isChooseSoldier : false ,
 		init : function(){
-			this.isShowMap = false ;
+			this.isChooseSoldier = false ;
+			this.soldierList = [] ;
+			this.showPage = "none" ;
 			this.initObject();
 			animationList = [] ;
 		},
 		initObject : function(){
+			this.nowTag = 	{ x : 540 , y : 295 , w : canvasMap["tag2"].width / 4 , h : canvasMap["tag2"].height , canvas : canvasMap["tag2"] , nowFrame : 0 , totalFrame : 4 , timer : 0 , delay : 5  } ;
 			this.box = { x : 1100 , y : 505 , w : canvasMap["box"].width , h : canvasMap["box"].height };
 			this.battle = { x : 100 , y : 530 , w : canvasMap["battle"].width , h : canvasMap["battle"].height };
 			this.map = { x : canvasWidth/2-canvasMap['map_0'].width/2 ,y : canvasHeight/2-canvasMap['map_0'].height/2 , w : canvasMap["map_0"].width  , h :canvasMap["map_0"].height , canvas : canvasMap["map_0"] ,
@@ -2570,9 +2587,19 @@ var Defender = (function(){
 					x : 975 , y : 136 , w : canvasMap["close"].width , h : canvasMap["close"].height , canvas : canvasMap["close"]
 				} ,
 				tag : [
-					{ x : 540 , y : 295 , w : canvasMap["tag0"].width / 7 , h : canvasMap["tag0"].height , canvas : canvasMap["tag0"] , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : "stage1" }
+					{ x : 540 , y : 295 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : canvasMap["tag1"] , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 1 }
 				] 
 			};
+			this.character = { 
+				chooseSoldier : { x : 8 , y : 490 , w : canvasMap["choose_soldier2"].width , h : canvasMap["choose_soldier2"].height , canvas : canvasMap["choose_soldier2"] },
+				status : { x : 400 , y : 300 , w : canvasMap["status"].width , h : canvasMap["status"].height , canvas : canvasMap["status"] }
+			};
+
+			var x = this.character.chooseSoldier.x , y = this.character.chooseSoldier.y+14 ;
+			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
+				x = i*165+20  ;
+				this.soldierList.push({x:x,y:y,w:canvasMap['choose_soldier_back2'].width,h:canvasMap['choose_soldier_back2'].height,canvas:canvasMap['choose_soldier_back2']});
+			}
 		},
 		showBackground : function(){
 			gameCtx.drawImage(canvasMap['bg_town_back5'],0,0);
@@ -2608,31 +2635,41 @@ var Defender = (function(){
 		setMouseEnterTagClick : function(tag){
 			document.body.style.cursor = "default" ;
 			nowPage = "preStage" ;
-			nowStage = tag.stage ;
+			nowStage = "stage" + tag.stage ;
 			preStage.init();
 		},
 		setMouseEnterMapCloseOver : function(){
 			document.body.style.cursor = "pointer" ;
 		},
 		setMouseEnterMapCloseClick : function(){
-			town.isShowMap = false ;
+			town.showPage = "none" ;
 			document.body.style.cursor = "default" ;
 		},	
 		setMouseEnterBattleOver : function(){
 			document.body.style.cursor = "pointer" ;
 		},
 		setMouseEnterBattleClick : function(){
-			town.isShowMap = true ;
+			town.showPage = "map" ;
 			document.body.style.cursor = "default" ;
 		},			
 		setMouseEnterBoxOver : function(){
 			document.body.style.cursor = "pointer" ;
 		},
 		setMouseEnterBoxClick : function(){
-
+			town.showPage = "character" ;
+		},		
+		setMouseEnterSoldierOver : function(i){
+			town.isChooseSoldier = true ;
+			document.body.style.cursor = "pointer" ;
+			mouseOver = "soldier" + i ;
+		},
+		setMouseEnterSoldierClick : function(i){
+			town.isChooseSoldier = true ;
+			document.body.style.cursor = "point" ;
+			mouseOver = "soldier" + i ;
 		},
 		detectMouseEnterOver : function(temp,offsetX,offsetY,ratio){
-			if ( this.isShowMap === true ){
+			if ( town.showPage === "map"  ){
 				for ( var i = 0 ; i < this.map.tag.length ; i ++ ){
 					if ( common.isMouseEnterRange(temp,town.map.tag[i],offsetX,offsetY,ratio) ){
 						town.setMouseEnterTagOver(town.map.tag[i]) ;
@@ -2643,6 +2680,14 @@ var Defender = (function(){
 					town.setMouseEnterMapCloseOver() ;
 					return ;
 				} 
+			} else if ( town.showPage === "character" ){
+				for ( var i = 0 ; i < town.soldierList.length ; i ++ ){
+					if ( common.isMouseEnterRange(temp,town.soldierList[i],offsetX,offsetY,ratio) ){
+						town.setMouseEnterSoldierOver(i) ;
+						return ;
+					} 
+				}
+				document.body.style.cursor = "default" ;
 			} else {
 				if ( common.isMouseEnterRange(temp,town.box,offsetX,offsetY,ratio) ){
 					town.setMouseEnterBoxOver() ;
@@ -2652,20 +2697,33 @@ var Defender = (function(){
 					return ;
 				}
 			}
-			common.setMouseEnterNone();
+			if ( town.isChooseSoldier === false )
+				common.setMouseEnterNone();
 		},
 		detectMouseEnterClick : function(temp,offsetX,offsetY,ratio){
-			if ( this.isShowMap === true ){				
+			if ( town.showPage === "map" ){				
 				for ( var i = 0 ; i < this.map.tag.length ; i ++ ){
 					if ( common.isMouseEnterRange(temp,town.map.tag[i],offsetX,offsetY,ratio) ){
 						town.setMouseEnterTagClick(town.map.tag[i]) ;
 						return ;
 					} 				
 				}
+				if ( common.isMouseEnterRange(temp,town.map,offsetX,offsetY,ratio) ){
+					return ;
+				} 
 				if ( common.isMouseEnterRange(temp,town.map.closeButton,offsetX,offsetY,ratio) ){
 					town.setMouseEnterMapCloseClick() ;
 					return ;
 				} 
+				town.showPage = "none" ;
+			}  else if ( town.showPage === "character" ){
+				for ( var i = 0 ; i < town.soldierList.length ; i ++ ){
+					if ( common.isMouseEnterRange(temp,town.soldierList[i],offsetX,offsetY,ratio) ){
+						town.setMouseEnterSoldierClick(i) ;
+						return ;
+					} 
+				}
+				town.showPage = "none" ;
 			} else {
 				if ( common.isMouseEnterRange(temp,town.box,offsetX,offsetY,ratio) ){
 					town.setMouseEnterBoxClick() ;
@@ -2673,7 +2731,14 @@ var Defender = (function(){
 				} else if ( common.isMouseEnterRange(temp,town.battle,offsetX,offsetY,ratio) ){
 					town.setMouseEnterBattleClick() ;
 					return ;
-				}
+				}				
+				if ( common.isMouseEnterRange(temp,town.character.status,offsetX,offsetY,ratio) ){
+					return ;
+				} 
+				if ( common.isMouseEnterRange(temp,town.character.chooseSoldier,offsetX,offsetY,ratio) ){
+					return ;
+				} 
+				town.showPage = "none" ;
 			}
 			common.setMouseEnterNone();
 		},
@@ -2696,15 +2761,59 @@ var Defender = (function(){
 			for ( var i = 0 ; i < this.map.tag.length ; i ++ ){
 				gameCtx.drawImage(this.map.tag[i].canvas,this.map.tag[i].nowFrame*this.map.tag[i].w,0,this.map.tag[i].w,this.map.tag[i].h,this.map.tag[i].x,this.map.tag[i].y,this.map.tag[i].w,this.map.tag[i].h);
 				common.loopAnimation(this.map.tag[i]);
+				if ( this.map.tag[i].stage === doneStage + 1 ){
+					this.nowTag.x = this.map.tag[i].x + this.map.tag[i].w/2 - this.nowTag.w/2;
+					this.nowTag.y = this.map.tag[i].y - this.map.tag[i].h/2 - this.nowTag.h/2 ;
+					common.drawObject(this.nowTag);
+					common.loopAnimation(this.nowTag);
+				}
+			}
+		},		
+		showCharacter : function(){
+			common.drawObject(this.character.status);
+			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
+				if ( mouseOver === "soldier" + i ){
+					gameCtx.fillStyle = "black" ;
+					gameCtx.fillText(common.getRole(mySoldierList[i].id),this.character.status.x+60,this.character.status.y+43);
+					gameCtx.fillText(mySoldierList[i].level,this.character.status.x+60,this.character.status.y+62);
+					gameCtx.fillText(mySoldierList[i].nowExp+"/"+mySoldierList[i].goalExp,this.character.status.x+60,this.character.status.y+81);
+					gameCtx.fillText(mySoldierList[i].atk,this.character.status.x+73,this.character.status.y+105);
+					gameCtx.fillText(mySoldierList[i].speed,this.character.status.x+73,this.character.status.y+124);
+					break ;
+				}
+			}
+
+			common.drawObject(this.character.chooseSoldier);
+			gameCtx.font="12px Courier New";
+			gameCtx.fillStyle = "white" ;
+			for ( var i = 0 ; i < this.soldierList.length ; i ++ ){
+				common.drawObject(this.soldierList[i]);
+				var role = common.getRole(mySoldierList[i].id) ;
+				var x = this.soldierList[i].x + 52, y = this.soldierList[i].y + 43 ;
+				gameCtx.drawImage(canvasMap[role+"_stand"],canvasMap[role+"_stand"].width/5*mySoldierList[i].stand.nowFrame,0,canvasMap[role+"_stand"].width/5,canvasMap[role+"_stand"].height,x+mySoldierList[i].standOffsetX,y+mySoldierList[i].standOffsetY,canvasMap[role+"_stand"].width/5,canvasMap[role+"_stand"].height);
+				if ( mySoldierList[i].stand.timer < mySoldierList[i].stand.delay  ){
+					mySoldierList[i].stand.timer ++ ;
+				} else if ( mySoldierList[i].stand.timer >= mySoldierList[i].stand.delay  ){
+					mySoldierList[i].stand.nowFrame  ++ ;
+					mySoldierList[i].stand.timer = 0 ;
+					if ( mySoldierList[i].stand.nowFrame >= mySoldierList[i].stand.totalFrame ){
+						mySoldierList[i].stand.nowFrame = 0 ;
+					}
+				}
+				gameCtx.fillText(common.getRole(mySoldierList[i].id),x,y+100);
+
+				
 			}
 		},
 		showAll : function(){
 			common.setMouseEvent(town.mouseOver,town.mouseClick);
 			this.showBackground();
 			this.showObject();
-			if ( this.isShowMap === true ){
+			if ( town.showPage === "map" ){
 				this.showMap();
-			}
+			} else if ( town.showPage === "character" ){
+				this.showCharacter();
+			} 
 		}
 	}
 
