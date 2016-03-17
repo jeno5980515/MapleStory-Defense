@@ -1958,11 +1958,11 @@ var Defender = (function(){
 			common.setMouseEnterNone();
 		},
 		mouseOver :function(e){
-			var info = common.getSizeInfo(e) 
+			var info = common.getSizeInfo(e) ;
 			preStage.detectMouseEnterOver(info.temp,info.offsetX,info.offsetY,info.ratio);
 		},
 		mouseClick: function(e){
-			var info = common.getSizeInfo(e) 
+			var info = common.getSizeInfo(e) ;
 			preStage.detectMouseEnterClick(info.temp,info.offsetX,info.offsetY,info.ratio);
 		},
 		showInvoke :function(){
@@ -2702,13 +2702,14 @@ var Defender = (function(){
 			document.body.style.cursor = "pointer" ;
 		},
 		setMouseEnterBattleClick : function(){
+			document.body.style.cursor = "pointer" ;
 			town.showPage = "map" ;
-			document.body.style.cursor = "default" ;
 		},			
 		setMouseEnterBoxOver : function(){
 			document.body.style.cursor = "pointer" ;
 		},
 		setMouseEnterBoxClick : function(){
+			document.body.style.cursor = "pointer" ;
 			town.showPage = "character" ;
 		},		
 		setMouseEnterSoldierOver : function(i){
@@ -2845,11 +2846,11 @@ var Defender = (function(){
 			common.setMouseEnterNone();
 		},
 		mouseOver :function(e){
-			var info = common.getSizeInfo(e) 
+			var info = common.getSizeInfo(e) ;
 			town.detectMouseEnterOver(info.temp,info.offsetX,info.offsetY,info.ratio);
 		},
 		mouseClick: function(e){
-			var info = common.getSizeInfo(e) 
+			var info = common.getSizeInfo(e) ;
 			town.detectMouseEnterClick(info.temp,info.offsetX,info.offsetY,info.ratio);
 		},
 		showObject : function(){
