@@ -42,18 +42,35 @@ var Defender = (function(){
 	var doneStage = 0 ;
 	var invokeAnimationTimer = 0 , invokeAnimationDelay = 5 , invokeAnimationNowFrame = 0 , invokeAnimationTotalFrame = 8 ;
 
-	var setting = {		
+	var setting = {				
+		setMouseEvent : function(over,click){
+			document.addEventListener("click",click);
+			document.addEventListener("mousemove",over); // ??
+		} ,
 		setMouseEnterFullscreenClick : function(){
 			var canvas = document.querySelector("canvas") ;
-			if (canvas.requestFullscreen) {
-			  canvas.requestFullscreen();
-			} else if (canvas.msRequestFullscreen) {
-			  canvas.msRequestFullscreen();
-			} else if (canvas.mozRequestFullScreen) {
-			  canvas.mozRequestFullScreen();
-			} else if (canvas.webkitRequestFullscreen) {
-			  canvas.webkitRequestFullscreen();
-			}
+			  if (!document.fullscreenElement &&    // alternative standard method
+			      !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {  
+			    if (canvas.requestFullscreen) {
+			      canvas.requestFullscreen();
+			    } else if (canvas.msRequestFullscreen) {
+			      canvas.msRequestFullscreen();
+			    } else if (canvas.mozRequestFullScreen) {
+			      canvas.mozRequestFullScreen();
+			    } else if (canvas.webkitRequestFullscreen) {
+			      canvas.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+			    }
+			  } else {
+			    if (document.exitFullscreen) {
+			      document.exitFullscreen();
+			    } else if (document.msExitFullscreen) {
+			      document.msExitFullscreen();
+			    } else if (document.mozCancelFullScreen) {
+			      document.mozCancelFullScreen();
+			    } else if (document.webkitExitFullscreen) {
+			      document.webkitExitFullscreen();
+			    }
+			  }
 		},
 		setMouseEnterFullscreenOver : function(){
 			document.body.style.cursor = "pointer" ;
@@ -1630,14 +1647,25 @@ var Defender = (function(){
 			mouseOver = 'none' ;
 		},
 		isMouseEnterRange : function(temp,obj,offsetX,offsetY,ratio){
-			var tempX = temp.x , tempY = temp.y ;
-			var x = obj.x , y = obj.y , sizeX = obj.w , sizeY = obj.h ;
-			var w = ratio.w , h = ratio.h ;
-			if ( Math.abs( (tempX - (x + sizeX / 2) * w / canvasWidth  ) - ((offsetX - w) / 2) )  <=  sizeX / 2 * w / canvasWidth &&
-				 Math.abs( (tempY - (y + sizeY / 2 ) * h / canvasHeight + 12 ) - ((offsetY - h ) / 2) )  <=  sizeY / 2 * h / canvasHeight   ) {
-				return true ;
-			} 
-			return false ;
+			if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {  
+				var tempX = temp.x , tempY = temp.y ;
+				var x = obj.x , y = obj.y , sizeX = obj.w , sizeY = obj.h ;
+				var w = ratio.w , h = ratio.h ;
+				if ( Math.abs( (tempX - (x + sizeX / 2) * w / canvasWidth  ) - ((offsetX - w) / 2) )  <=  sizeX / 2 * w / canvasWidth &&
+					 Math.abs( (tempY - (y + sizeY / 2 ) * h / canvasHeight + 12 ) - ((offsetY - h ) / 2) )  <=  sizeY / 2 * h / canvasHeight   ) {
+					return true ;
+				} 
+				return false ;
+			} else {
+				var tempX = temp.x , tempY = temp.y ;
+				var x = obj.x , y = obj.y , sizeX = obj.w , sizeY = obj.h ;
+				var w = ratio.w , h = ratio.h ;
+				if ( Math.abs( (tempX - (x + sizeX / 2) * w / canvasWidth  ) - ((offsetX - w) / 2) )  <=  sizeX / 2 * w / canvasWidth &&
+					 Math.abs( (tempY - (y + sizeY / 2 ) + 12 ) - ((offsetY - h ) / 2) )  <=  sizeY / 2 ) {
+					return true ;
+				} 
+				return false ;
+			}
 		},
 		getMouseSite : function(e){
 			var tempX , tempY ;
@@ -1723,7 +1751,7 @@ var Defender = (function(){
 					town.showAll();
 				}
 				common.drawObject(fullscreen);
-				common.setMouseEvent(setting.mouseOver,setting.mouseClick);
+				setting.setMouseEvent(setting.mouseOver,setting.mouseClick);
 			} catch ( e ){
 
 			} 
@@ -1817,7 +1845,7 @@ var Defender = (function(){
 		setMouseEvent : function(a, b) {
 	        document.onclick = b;
 	        document.onmousemove = a;
-	        document.ontouchend = b
+	        //document.ontouchend = b
     	},
 		initBackground : function(){
 			background = { x:0 , y:0 , w: canvasMap['background'].width , h: canvasMap['background'].height} ;
@@ -2684,7 +2712,7 @@ var Defender = (function(){
 			this.battle = { x : 100 , y : 530 , w : canvasMap["battle"].width , h : canvasMap["battle"].height };
 			this.map = { x : canvasWidth/2-canvasMap['map_0'].width/2 ,y : canvasHeight/2-canvasMap['map_0'].height/2 , w : canvasMap["map_0"].width  , h :canvasMap["map_0"].height , canvas : canvasMap["map_0"] ,
 				closeButton : {
-					x : 975 , y : 136 , w : canvasMap["close"].width , h : canvasMap["close"].height , canvas : canvasMap["close"]
+					x : 1140 , y : 20 , w : canvasMap["close"].width , h : canvasMap["close"].height , canvas : canvasMap["close"]
 				} ,
 				tag : [
 					{ x : 473 , y : 247 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : canvasMap["tag1"] , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 1 }
