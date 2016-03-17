@@ -88,14 +88,12 @@ var Defender = (function(){
 				setting.setMouseEnterFullscreenOver() ;
 				return ;
 			}
-			common.setMouseEnterNone();
 		},
 		detectMouseEnterClick : function(temp,offsetX,offsetY,ratio){
 			if ( common.isMouseEnterRange(temp,fullscreen,offsetX,offsetY,ratio) ){
 				setting.setMouseEnterFullscreenClick() ;
 				return ;
 			}
-			common.setMouseEnterNone();
 		}
 	}
 
@@ -2859,9 +2857,11 @@ var Defender = (function(){
 					return ;
 				}
 			}
+			/*
 			if ( town.isChooseSoldier === false ){
 				common.setMouseEnterNone();
 			}
+			*/
 		},
 		detectMouseEnterClick : function(temp,offsetX,offsetY,ratio){
 			if ( town.showPage === "map" ){				
