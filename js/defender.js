@@ -8,7 +8,7 @@ var Defender = (function(){
 	var IE = "ActiveXObject" in window ;
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
-	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart","info","info_back","info_card","info_close",
+	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart","info","info_back","info_card","info_close","fullscreen",
 	"bg_town_back0","bg_town_back1","bg_town_back2","bg_town_back3","bg_town_back4","bg_town_back5","bg_town_back6","bg_town_back7",
 	"box","battle","status","choose_soldier_back2","choose_soldier2","skill","up","upgrade","skill_back",
 	"tag0","tag1","tag2","map_0",
@@ -38,8 +38,49 @@ var Defender = (function(){
 	var monsterTypeList = [] ;
 	var animationList = [] ;
 	var mySoldierList = [] ;
+	var fullscreen = {} ;
 	var doneStage = 0 ;
 	var invokeAnimationTimer = 0 , invokeAnimationDelay = 5 , invokeAnimationNowFrame = 0 , invokeAnimationTotalFrame = 8 ;
+
+	var setting = {		
+		setMouseEnterFullscreenClick : function(){
+			var canvas = document.querySelector("canvas") ;
+			if (canvas.requestFullscreen) {
+			  canvas.requestFullscreen();
+			} else if (canvas.msRequestFullscreen) {
+			  canvas.msRequestFullscreen();
+			} else if (canvas.mozRequestFullScreen) {
+			  canvas.mozRequestFullScreen();
+			} else if (canvas.webkitRequestFullscreen) {
+			  canvas.webkitRequestFullscreen();
+			}
+		},
+		setMouseEnterFullscreenOver : function(){
+			document.body.style.cursor = "pointer" ;
+		},
+		mouseOver :function(e){
+			var info = common.getSizeInfo(e) ;
+			setting.detectMouseEnterOver(info.temp,info.offsetX,info.offsetY,info.ratio);
+		},
+		mouseClick: function(e){
+			var info = common.getSizeInfo(e) ;
+			setting.detectMouseEnterClick(info.temp,info.offsetX,info.offsetY,info.ratio);
+		},
+		detectMouseEnterOver : function(temp,offsetX,offsetY,ratio){
+			if ( common.isMouseEnterRange(temp,fullscreen,offsetX,offsetY,ratio) ){
+				setting.setMouseEnterFullscreenOver() ;
+				return ;
+			}
+			common.setMouseEnterNone();
+		},
+		detectMouseEnterClick : function(temp,offsetX,offsetY,ratio){
+			if ( common.isMouseEnterRange(temp,fullscreen,offsetX,offsetY,ratio) ){
+				setting.setMouseEnterFullscreenClick() ;
+				return ;
+			}
+			common.setMouseEnterNone();
+		}
+	}
 
 	var common = {
 		drawObject : function(obj){
@@ -1582,7 +1623,7 @@ var Defender = (function(){
 		setMouseEvent : function(over,click){
 			document.onclick = click ;
 			document.onmousemove = over ;
-			document.ontouchend = click ;
+			//document.ontouchend = click ;
 		} ,
 		setMouseEnterNone : function(){
 			document.body.style.cursor = "default" ;
@@ -1681,6 +1722,8 @@ var Defender = (function(){
 				} else if ( nowPage === "town" ){
 					town.showAll();
 				}
+				common.drawObject(fullscreen);
+				common.setMouseEvent(setting.mouseOver,setting.mouseClick);
 			} catch ( e ){
 
 			} 
@@ -1719,7 +1762,8 @@ var Defender = (function(){
 		showAll : function(){
 			loadPage.showBackground();
 			loadPage.showProgress();
-			if ( loadImageProgress === imageList.length ){			
+			if ( loadImageProgress === imageList.length ){
+				fullscreen = { x : 1220 , y : 20 , canvas : canvasMap["fullscreen"] , w : canvasMap["fullscreen"].width ,h : canvasMap["fullscreen"].height } ;		
 				common.initSoldierMap();
 				common.initMonsterMap();
 				common.initMySoldierList();
@@ -2643,7 +2687,7 @@ var Defender = (function(){
 					x : 975 , y : 136 , w : canvasMap["close"].width , h : canvasMap["close"].height , canvas : canvasMap["close"]
 				} ,
 				tag : [
-					{ x : 540 , y : 295 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : canvasMap["tag1"] , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 1 }
+					{ x : 473 , y : 247 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : canvasMap["tag1"] , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 1 }
 				] 
 			};
 			this.character = { 
@@ -2792,7 +2836,6 @@ var Defender = (function(){
 			}
 		},
 		detectMouseEnterClick : function(temp,offsetX,offsetY,ratio){
-			alert(town.showPage);
 			if ( town.showPage === "map" ){				
 				for ( var i = 0 ; i < this.map.tag.length ; i ++ ){
 					if ( common.isMouseEnterRange(temp,town.map.tag[i],offsetX,offsetY,ratio) ){
@@ -2950,3 +2993,5 @@ var Defender = (function(){
 window.addEventListener("load", function() {
     FastClick.attach(document.body)
 }, !1);
+
+
