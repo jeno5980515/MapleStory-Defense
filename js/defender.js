@@ -1730,7 +1730,7 @@ var Defender = (function(){
 			}
 		}
 	}
-
+/*
 	var preStage = {
 		invokeList : [] ,
 		isShowChooseSoldier : false ,
@@ -2327,7 +2327,7 @@ var Defender = (function(){
 			},
 		}
 	};
-
+*/
 	var stage = {
 		isShowChooseSoldier : false ,
 		isInitInvoke : false ,
