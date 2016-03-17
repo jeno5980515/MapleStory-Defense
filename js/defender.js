@@ -1660,8 +1660,8 @@ var Defender = (function(){
 				var tempX = temp.x , tempY = temp.y ;
 				var x = obj.x , y = obj.y , sizeX = obj.w , sizeY = obj.h ;
 				var w = ratio.w , h = ratio.h ;
-				if ( Math.abs( (tempX - (x + sizeX / 2) * w / canvasWidth  ) - ((offsetX - w) / 2) )  <=  sizeX / 2 * w / canvasWidth &&
-					 Math.abs( (tempY - (y + sizeY / 2 ) + 12 ) - ((offsetY - h ) / 2) )  <=  sizeY / 2 ) {
+				if ( Math.abs( (tempX - (x + sizeX / 2) *  window.innerWidth / canvasWidth  )  )  <=  sizeX / 2 * window.innerWidth / canvasWidth &&
+					 Math.abs( (tempY - (y + sizeY / 2 ) * window.innerHeight / canvasHeight )  )  <=  sizeY / 2 * window.innerHeight / canvasHeight   ) {
 					return true ;
 				} 
 				return false ;
@@ -2715,7 +2715,7 @@ var Defender = (function(){
 					x : 1140 , y : 20 , w : canvasMap["close"].width , h : canvasMap["close"].height , canvas : canvasMap["close"]
 				} ,
 				tag : [
-					{ x : 473 , y : 247 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : canvasMap["tag1"] , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 1 }
+					{ x : 457 , y : 229 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : canvasMap["tag1"] , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 1 }
 				] 
 			};
 			this.character = { 
