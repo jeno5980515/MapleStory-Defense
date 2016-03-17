@@ -2792,7 +2792,7 @@ var Defender = (function(){
 			}
 		},
 		detectMouseEnterClick : function(temp,offsetX,offsetY,ratio){
-			alert(1);
+			alert(town.showPage);
 			if ( town.showPage === "map" ){				
 				for ( var i = 0 ; i < this.map.tag.length ; i ++ ){
 					if ( common.isMouseEnterRange(temp,town.map.tag[i],offsetX,offsetY,ratio) ){
