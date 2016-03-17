@@ -1724,8 +1724,8 @@ var Defender = (function(){
 				common.initMonsterMap();
 				common.initMySoldierList();
 				common.initNumberDamage();
-				nowPage = 'preStage' ;
-				preStage.init();
+				nowPage = 'town' ;
+				town.init();
 				//preStage.init();
 			}
 		}
