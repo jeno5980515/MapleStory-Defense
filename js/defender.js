@@ -285,7 +285,8 @@ var Defender = (function(){
 				ratio : 0.7 ,
 				type : "active" ,	
 				upgrade : function(){
-					this.ratio += 0.1 ;
+					if ( this.nowLevel > 0)
+						this.ratio += 0.1 ;
 					this.nowLevel ++ ;
 				},		
 				canvas : {
@@ -373,8 +374,10 @@ var Defender = (function(){
 				probability : 0.5 , 
 				ratio : 1.5 ,		
 				upgrade : function(){
-					this.ratio += 0.1 ;
-					this.probability += 0.05 ;
+					if ( this.nowLevel > 0){
+						this.ratio += 0.1 ;
+						this.probability += 0.05 ;
+					}
 					this.nowLevel ++ ;
 				},	
 				f : function(d){
@@ -432,7 +435,8 @@ var Defender = (function(){
 				type : "active" ,
 				ratio : 0.7 ,		
 				upgrade : function(){
-					this.ratio += 0.1 ;
+					if ( this.nowLevel > 0)
+						this.ratio += 0.1 ;
 					this.nowLevel ++ ;
 				},				
 				canvas : {
@@ -525,7 +529,8 @@ var Defender = (function(){
 				type : "active" ,
 				ratio : 1.5 ,	
 				upgrade : function(){
-					this.ratio += 0.1 ;
+					if ( this.nowLevel > 0)
+						this.ratio += 0.1 ;
 					this.nowLevel ++ ;
 				},				
 				canvas : {
@@ -656,7 +661,8 @@ var Defender = (function(){
 				ratio : 0.5 ,
 				effectRatio : 0.7 ,		
 				upgrade : function(){
-					this.effectRatio += 0.1 ;
+					if ( this.nowLevel > 0)
+						this.effectRatio += 0.1 ;
 					this.nowLevel ++ ;
 				},		
 				canvas : {
@@ -753,7 +759,8 @@ var Defender = (function(){
 				ratio : 0.7 ,
 				type : "active" ,	
 				upgrade : function(){
-					this.ratio += 0.1 ;
+					if ( this.nowLevel > 0)
+						this.ratio += 0.1 ;
 					this.nowLevel ++ ;
 				},				
 				canvas : {
@@ -871,7 +878,8 @@ var Defender = (function(){
 				type : "active" ,
 				ratio : 1.3 ,	
 				upgrade : function(){
-					this.ratio += 0.1 ;
+					if ( this.nowLevel > 0)
+						this.ratio += 0.1 ;
 					this.nowLevel ++ ;
 				},			
 				canvas : {
@@ -968,7 +976,8 @@ var Defender = (function(){
 				type : "active" ,
 				ratio : 1.5 ,	
 				upgrade : function(){
-					this.ratio += 0.1 ;
+					if ( this.nowLevel > 0)
+						this.ratio += 0.1 ;
 					this.nowLevel ++ ;
 				},			
 				canvas : {
@@ -2850,7 +2859,10 @@ var Defender = (function(){
 			town.character.console.icon.canvas = canvasMap[skill.canvasName+"_icon"] ;
 			town.character.console.icon.w = canvasMap[skill.canvasName+"_icon"].width / 3 ;
 			town.character.console.icon.h = canvasMap[skill.canvasName+"_icon"].height ;
-			town.character.console.icon.nowFrame = 1 ;
+			if ( mySoldierList[i].skill[j].nowLevel > 0 )
+				town.character.console.icon.nowFrame = 1 ;
+			else 
+				town.character.console.icon.nowFrame = 2 ;
 			town.character.console.icon.ratio = 1.7 ;
 			town.character.console.name.text = skill.name ;
 			town.character.console.content[0].text = skill.description ;
