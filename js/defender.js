@@ -283,10 +283,11 @@ var Defender = (function(){
 				timer : 200 ,
 				target : [] ,
 				ratio : 0.7 ,
+				ratioUpgrade : 0.1 ,
 				type : "active" ,	
 				upgrade : function(){
 					if ( this.nowLevel > 0)
-						this.ratio += 0.1 ;
+						this.ratio += this.ratioUpgrade ;
 					this.nowLevel ++ ;
 				},		
 				canvas : {
@@ -371,12 +372,14 @@ var Defender = (function(){
 				effect : [] ,
 				target : "enemy" ,
 				type : "passive" ,				
-				probability : 0.5 , 
+				probability : 0.5 ,
+				probabilityUpgrade : 0.05 , 
 				ratio : 1.5 ,		
+				ratioUpgrade : 0.1 ,
 				upgrade : function(){
 					if ( this.nowLevel > 0){
-						this.ratio += 0.1 ;
-						this.probability += 0.05 ;
+						this.ratio += this.ratioUpgrade ;
+						this.probability += this.probabilityUpgrade;
 					}
 					this.nowLevel ++ ;
 				},	
@@ -433,10 +436,11 @@ var Defender = (function(){
 				timer : 200 ,
 				target : [] ,
 				type : "active" ,
-				ratio : 0.7 ,		
+				ratio : 0.7 ,
+				ratioUpgrade : 0.1 ,		
 				upgrade : function(){
 					if ( this.nowLevel > 0)
-						this.ratio += 0.1 ;
+						this.ratio += this.ratioUpgrade ;
 					this.nowLevel ++ ;
 				},				
 				canvas : {
@@ -528,9 +532,10 @@ var Defender = (function(){
 				target : [] ,
 				type : "active" ,
 				ratio : 1.5 ,	
+				ratioUpgrade : 0.1 ,
 				upgrade : function(){
 					if ( this.nowLevel > 0)
-						this.ratio += 0.1 ;
+						this.ratio += this.ratioUpgrade ;
 					this.nowLevel ++ ;
 				},				
 				canvas : {
@@ -659,10 +664,11 @@ var Defender = (function(){
 				target : [] ,
 				type : "active" ,
 				ratio : 0.5 ,
-				effectRatio : 0.7 ,		
+				effectRatio : 0.7 ,	
+				ratioUpgrade : 0.1 ,	
 				upgrade : function(){
 					if ( this.nowLevel > 0)
-						this.effectRatio += 0.1 ;
+						this.effectRatio += this.ratioUpgrade ;
 					this.nowLevel ++ ;
 				},		
 				canvas : {
@@ -758,9 +764,10 @@ var Defender = (function(){
 				target : [] ,
 				ratio : 0.7 ,
 				type : "active" ,	
+				ratioUpgrade : 0.1 ,
 				upgrade : function(){
 					if ( this.nowLevel > 0)
-						this.ratio += 0.1 ;
+						this.ratio += this.ratioUpgrade ;
 					this.nowLevel ++ ;
 				},				
 				canvas : {
@@ -877,9 +884,10 @@ var Defender = (function(){
 				target : [] ,
 				type : "active" ,
 				ratio : 1.3 ,	
+				ratioUpgrade : 0.1 ,
 				upgrade : function(){
 					if ( this.nowLevel > 0)
-						this.ratio += 0.1 ;
+						this.ratio += this.ratioUpgrade ;
 					this.nowLevel ++ ;
 				},			
 				canvas : {
@@ -975,9 +983,10 @@ var Defender = (function(){
 				target : [] ,
 				type : "active" ,
 				ratio : 1.5 ,	
+				ratioUpgrade : 0.1 ,
 				upgrade : function(){
 					if ( this.nowLevel > 0)
-						this.ratio += 0.1 ;
+						this.ratio += this.ratioUpgrade ;
 					this.nowLevel ++ ;
 				},			
 				canvas : {
@@ -1641,7 +1650,9 @@ var Defender = (function(){
 				target : data.target || [] ,
 				isInit : false ,
 				ratio : data.ratio || 1 ,
+				ratioUpgrade : data.ratioUpgrade || 0 ,
 				probability : data.probability || 1 ,
+				probabilityUpgrade : data.probabilityUpgrade || 0 ,
 				canvasName : data.canvasName || null ,
 				upgrade : data.upgrade || null 
 			}
@@ -2752,6 +2763,13 @@ var Defender = (function(){
 				this.soldierList.push({x:x,y:y,w:canvasMap['choose_soldier_back2'].width,h:canvasMap['choose_soldier_back2'].height,canvas:canvasMap['choose_soldier_back2'],skill:skill});
 			}
 		},
+		initConsole : function(){
+			town.character.console = { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : canvasMap["console"] ,
+				icon : { x : 1050 , y : 250 } ,
+				name : { x : 1115 , y : 285 } ,
+				content : [{ x : 1060 , y : 340 } ] 
+			};
+		},
 		initObject : function(){
 			this.nowTag = 	{ x : 540 , y : 295 , w : canvasMap["tag2"].width / 4 , h : canvasMap["tag2"].height , canvas : canvasMap["tag2"] , nowFrame : 0 , totalFrame : 4 , timer : 0 , delay : 5  } ;
 			this.box = { x : 1100 , y : 505 , w : canvasMap["box"].width , h : canvasMap["box"].height };
@@ -2846,6 +2864,7 @@ var Defender = (function(){
 			town.isChooseSoldier = true ;
 			document.body.style.cursor = "pointer" ;
 			mouseOver = "soldier" + i ;
+			town.initConsole();
 		},
 		setMouseEnterSkillOver : function(i){
 			document.body.style.cursor = "pointer" ;
@@ -2867,16 +2886,36 @@ var Defender = (function(){
 			town.character.console.name.text = skill.name ;
 			town.character.console.content[0].text = skill.description ;
 			if ( skill.type === "active" ){
-				if ( skill.effectRatio !== -1)	
-					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+skill.effectRatio*100+"%"});
-				else 
-					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+skill.ratio*100+"%"});
+				if ( skill.effectRatio !== -1)	{
+					var text = skill.effectRatio*100+"%" ;
+					if ( skill.nowLevel > 0 && skill.ratioUpgrade > 0 ){
+						text += " (to" + (skill.effectRatio+skill.ratioUpgrade )*100+"%)" ;
+					}
+					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+text});
+				}
+				else {
+					var text = skill.ratio*100+"%" ;
+					if ( skill.nowLevel > 0 && skill.ratioUpgrade > 0 ){
+						text += " (to" + (skill.ratio+skill.ratioUpgrade )*100+"%)" ;
+					}
+					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+text});
+				}
 				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Speed : "+skill.speed});
 			} else {
-				if ( skill.ratio !== undefined);	
-					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+skill.ratio*100+"%"});
-				if ( skill.chance !== undefined);	
-					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Probability : "+skill.probability});
+				if ( skill.ratio !== undefined){
+					var text = skill.ratio*100+"%" ;
+					if ( skill.nowLevel > 0 && skill.ratioUpgrade > 0 ){
+						text += " (to" + (skill.ratio+skill.ratioUpgrade )*100+"%)" ;
+					}
+					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+text});
+				}
+				if ( skill.chance !== undefined){
+					var text = skill.probability*100+"%" ;
+					if ( skill.nowLevel > 0 && skill.probabilityUpgrade > 0 ){
+						text += " (to" + (skill.probability+skill.probabilityUpgrade )*100+"%)" ;
+					}
+					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Probability : "+text});
+				}
 			}
 		},
 		setMouseEnterUpgradeClick : function(i,j){
@@ -3052,7 +3091,7 @@ var Defender = (function(){
 		showCharacter : function(){
 
 			gameCtx.fillStyle = "black" ;
-			gameCtx.font="26px Arial";
+			gameCtx.font="24px Arial";
 
 			common.drawObject(this.character.status);
 			common.drawObject(this.character.skill);
