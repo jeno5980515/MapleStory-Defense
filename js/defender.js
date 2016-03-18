@@ -287,8 +287,11 @@ var Defender = (function(){
 				ratioUpgrade : 0.1 ,
 				type : "active" ,	
 				upgrade : function(){
-					if ( this.nowLevel > 0)
-						this.ratio += this.ratioUpgrade ;
+					if ( this.nowLevel > 0){
+						var r = this.ratio * 10 ; 
+						var u = this.ratioUpgrade * 10 ;
+						this.ratio = (r + u )/ 10 ;
+					}
 					this.nowLevel ++ ;
 				},		
 				canvas : {
@@ -379,9 +382,17 @@ var Defender = (function(){
 				ratioUpgrade : 0.1 ,
 				upgrade : function(){
 					if ( this.nowLevel > 0){
-						this.ratio += this.ratioUpgrade ;
-						this.probability += this.probabilityUpgrade;
+						var r = this.ratio * 10 ; 
+						var u = this.ratioUpgrade * 10 ;
+						this.ratio = (r + u )/ 10 ;
+
+						var r = this.probability * 100 ; 
+						var u = this.probabilityUpgrade * 100 ;
+						this.probability = Math.round((r + u ))/ 100 ;
 					}
+					if ( this.probability >= 0.8 ){
+						this.probabilityUpgrade = 0 ;
+					} 
 					this.nowLevel ++ ;
 				},	
 				f : function(d){
@@ -440,8 +451,11 @@ var Defender = (function(){
 				ratio : 0.7 ,
 				ratioUpgrade : 0.1 ,		
 				upgrade : function(){
-					if ( this.nowLevel > 0)
-						this.ratio += this.ratioUpgrade ;
+					if ( this.nowLevel > 0){
+						var r = this.ratio * 10 ; 
+						var u = this.ratioUpgrade * 10 ;
+						this.ratio = (r + u )/ 10 ;
+					}
 					this.nowLevel ++ ;
 				},				
 				canvas : {
@@ -535,8 +549,11 @@ var Defender = (function(){
 				ratio : 1.5 ,	
 				ratioUpgrade : 0.1 ,
 				upgrade : function(){
-					if ( this.nowLevel > 0)
-						this.ratio += this.ratioUpgrade ;
+					if ( this.nowLevel > 0){
+						var r = this.ratio * 10 ; 
+						var u = this.ratioUpgrade * 10 ;
+						this.ratio = (r + u )/ 10 ;
+					}
 					this.nowLevel ++ ;
 				},				
 				canvas : {
@@ -668,8 +685,11 @@ var Defender = (function(){
 				effectRatio : 0.7 ,	
 				ratioUpgrade : 0.1 ,	
 				upgrade : function(){
-					if ( this.nowLevel > 0)
-						this.effectRatio += this.ratioUpgrade ;
+					if ( this.nowLevel > 0){
+						var r = this.effectRatio * 10 ; 
+						var u = this.ratioUpgrade * 10 ;
+						this.effectRatio = (r + u )/ 10 ;
+					}
 					this.nowLevel ++ ;
 				},		
 				canvas : {
@@ -767,8 +787,11 @@ var Defender = (function(){
 				type : "active" ,	
 				ratioUpgrade : 0.1 ,
 				upgrade : function(){
-					if ( this.nowLevel > 0)
-						this.ratio += this.ratioUpgrade ;
+					if ( this.nowLevel > 0){
+						var r = this.ratio * 10 ; 
+						var u = this.ratioUpgrade * 10 ;
+						this.ratio = (r + u )/ 10 ;
+					}
 					this.nowLevel ++ ;
 				},				
 				canvas : {
@@ -887,8 +910,11 @@ var Defender = (function(){
 				ratio : 1.3 ,	
 				ratioUpgrade : 0.1 ,
 				upgrade : function(){
-					if ( this.nowLevel > 0)
-						this.ratio += this.ratioUpgrade ;
+					if ( this.nowLevel > 0){
+						var r = this.ratio * 10 ; 
+						var u = this.ratioUpgrade * 10 ;
+						this.ratio = (r + u )/ 10 ;
+					}
 					this.nowLevel ++ ;
 				},			
 				canvas : {
@@ -986,8 +1012,11 @@ var Defender = (function(){
 				ratio : 1.5 ,	
 				ratioUpgrade : 0.1 ,
 				upgrade : function(){
-					if ( this.nowLevel > 0)
-						this.ratio += this.ratioUpgrade ;
+					if ( this.nowLevel > 0){
+						var r = this.ratio * 10 ; 
+						var u = this.ratioUpgrade * 10 ;
+						this.ratio = (r + u )/ 10 ;
+					}
 					this.nowLevel ++ ;
 				},			
 				canvas : {
@@ -2888,14 +2917,14 @@ var Defender = (function(){
 				if ( skill.effectRatio !== -1)	{
 					var text = skill.effectRatio*100+"%" ;
 					if ( skill.nowLevel > 0 && skill.ratioUpgrade > 0 ){
-						text += " (" + (skill.effectRatio+skill.ratioUpgrade )*100+"%)" ;
+						text += " (" + (skill.effectRatio*100+skill.ratioUpgrade*100 )+"%)" ;
 					}
 					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+text});
 				}
 				else {
 					var text = skill.ratio*100+"%" ;
 					if ( skill.nowLevel > 0 && skill.ratioUpgrade > 0 ){
-						text += " (" + (skill.ratio+skill.ratioUpgrade )*100+"%)" ;
+						text += " (" + (skill.ratio*100+skill.ratioUpgrade*100 )+"%)" ;
 					}
 					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+text});
 				}
@@ -2904,16 +2933,16 @@ var Defender = (function(){
 				if ( skill.ratio !== undefined){
 					var text = skill.ratio*100+"%" ;
 					if ( skill.nowLevel > 0 && skill.ratioUpgrade > 0 ){
-						text += " (" + (skill.ratio+skill.ratioUpgrade )*100+"%)" ;
+						text += " (" + (skill.ratio*100+skill.ratioUpgrade*100 )+"%)" ;
 					}
 					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+text});
 				}
-				if ( skill.chance !== undefined){
-					var text = skill.probability*100+"%" ;
+				if ( skill.probability !== undefined){
+					var text = Math.round(skill.probability*100)+"%" ;
 					if ( skill.nowLevel > 0 && skill.probabilityUpgrade > 0 ){
-						text += " (" + (skill.probability+skill.probabilityUpgrade )*100+"%)" ;
+						text += " (" + Math.round((skill.probability*1000+skill.probabilityUpgrade*1000 )/10)+"%)" ;
 					}
-					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Probability : "+text});
+					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Prob : "+text});
 				}
 			}
 		},
