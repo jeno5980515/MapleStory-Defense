@@ -10,7 +10,7 @@ var Defender = (function(){
 	var defenderList = [] ;
 	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart","info","info_back","info_card","info_close","fullscreen",
 	"bg_town_back0","bg_town_back1","bg_town_back2","bg_town_back3","bg_town_back4","bg_town_back5","bg_town_back6","bg_town_back7",
-	"box","battle","status","choose_soldier_back2","choose_soldier2","skill","up","upgrade","skill_back",
+	"box","battle","status","choose_soldier_back2","choose_soldier2","skill","up","upgrade","skill_back","item","equip","console",
 	"tag0","tag1","tag2","map_0",
 	"archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
 	"magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1",
@@ -40,6 +40,7 @@ var Defender = (function(){
 	var mySoldierList = [] ;
 	var fullscreen = {} ;
 	var doneStage = 0 ;
+	var money = 0 ;
 	var invokeAnimationTimer = 0 , invokeAnimationDelay = 5 , invokeAnimationNowFrame = 0 , invokeAnimationTotalFrame = 8 ;
 
 	var setting = {				
@@ -98,6 +99,26 @@ var Defender = (function(){
 	}
 
 	var common = {
+      	wrapText : function(t, maxWidth, lineHeight) {
+      		var context = gameCtx , x = t.x , y = t.y , text = t.text ;
+			var words = text.split(' ');
+			var line = '';
+			for (var n = 0; n < words.length; n++) {
+				var testLine = line + words[n] + ' ';
+				var metrics = context.measureText(testLine);
+				var testWidth = metrics.width;
+				if (testWidth > maxWidth && n > 0) {
+					context.fillText(line, x, y);
+					line = words[n] + ' ';
+					y += lineHeight;
+				}
+				else {
+					line = testLine;
+				}
+			}
+			context.fillText(line, x, y);
+			return y ;
+		},
 		drawObject : function(obj){
 			if ( obj.text === undefined ){
 				var ratio = 1 ; 
@@ -254,6 +275,7 @@ var Defender = (function(){
 			var doubleArrow = common.createSkill({
 				name : "Double Arrow" ,
 				canvasName : "archer_skill0" ,
+				description : "Attack a monster twice." ,
 				needLevel : 1 ,
 				needSkill : [] ,
 				effect : [] ,
@@ -263,6 +285,7 @@ var Defender = (function(){
 				ratio : 0.7 ,
 				type : "active" ,	
 				upgrade : function(){
+					this.ratio += 0.1 ;
 					this.nowLevel ++ ;
 				},		
 				canvas : {
@@ -340,6 +363,7 @@ var Defender = (function(){
 
 			var criticalArrow = common.createSkill({
 				name : "Critical Arrow" ,
+				description : "Have the probability to deal more damage." ,
 				canvasName : "archer_skill1" ,
 				needLevel : 1 ,
 				needSkill : [] ,
@@ -347,8 +371,10 @@ var Defender = (function(){
 				target : "enemy" ,
 				type : "passive" ,				
 				probability : 0.5 , 
-				ratio : 2 ,		
+				ratio : 1.5 ,		
 				upgrade : function(){
+					this.ratio += 0.1 ;
+					this.probability += 0.05 ;
 					this.nowLevel ++ ;
 				},	
 				f : function(d){
@@ -396,6 +422,7 @@ var Defender = (function(){
 			var magicClaw = common.createSkill({
 				name : "Magic Claw" ,
 				canvasName : "magician_skill0" ,
+				description : "Attack a monster twice." ,
 				needLevel : 1 ,
 				needSkill : [] ,
 				effect : [] ,
@@ -405,6 +432,7 @@ var Defender = (function(){
 				type : "active" ,
 				ratio : 0.7 ,		
 				upgrade : function(){
+					this.ratio += 0.1 ;
 					this.nowLevel ++ ;
 				},				
 				canvas : {
@@ -487,6 +515,7 @@ var Defender = (function(){
 			var magicBomb = common.createSkill({
 				name : "Magic Bomb" ,
 				canvasName : "magician_skill1" ,
+				description : "Attack monsters in the range." ,
 				needLevel : 1 ,
 				needSkill : [] ,
 				effect : [] ,
@@ -496,6 +525,7 @@ var Defender = (function(){
 				type : "active" ,
 				ratio : 1.5 ,	
 				upgrade : function(){
+					this.ratio += 0.1 ;
 					this.nowLevel ++ ;
 				},				
 				canvas : {
@@ -615,6 +645,7 @@ var Defender = (function(){
 			var disorder = common.createSkill({
 				name : "Disorder" ,
 				canvasName : "rogue_skill0" ,
+				description : "Reduce the defense of a monster." ,
 				needLevel : 1 ,
 				needSkill : [] ,
 				effect : [] ,
@@ -625,6 +656,7 @@ var Defender = (function(){
 				ratio : 0.5 ,
 				effectRatio : 0.7 ,		
 				upgrade : function(){
+					this.effectRatio += 0.1 ;
 					this.nowLevel ++ ;
 				},		
 				canvas : {
@@ -711,6 +743,7 @@ var Defender = (function(){
 			var doubleStab = common.createSkill({
 				name : "Double Stab" ,
 				canvasName : "rogue_skill1" ,
+				description : "Attack a monster twice." ,
 				needLevel : 1 ,
 				needSkill : [] ,
 				effect : [] ,
@@ -720,6 +753,7 @@ var Defender = (function(){
 				ratio : 0.7 ,
 				type : "active" ,	
 				upgrade : function(){
+					this.ratio += 0.1 ;
 					this.nowLevel ++ ;
 				},				
 				canvas : {
@@ -827,6 +861,7 @@ var Defender = (function(){
 			var slashBlast = common.createSkill({
 				name : "Slash Blast" ,
 				canvasName : "swordman_skill0" ,
+				description : "Attack monsters in the range." ,
 				needLevel : 1 ,
 				needSkill : [] ,
 				effect : [] ,
@@ -834,8 +869,9 @@ var Defender = (function(){
 				timer : 500 ,
 				target : [] ,
 				type : "active" ,
-				ratio : 1.2 ,	
+				ratio : 1.3 ,	
 				upgrade : function(){
+					this.ratio += 0.1 ;
 					this.nowLevel ++ ;
 				},			
 				canvas : {
@@ -922,6 +958,7 @@ var Defender = (function(){
 			var powerStrike = common.createSkill({
 				name : "Power Strike" ,
 				canvasName : "swordman_skill1" ,
+				description : "Deal powerful damage to a monster." ,
 				needLevel : 1 ,
 				needSkill : [] ,
 				effect : [] ,
@@ -931,6 +968,7 @@ var Defender = (function(){
 				type : "active" ,
 				ratio : 1.5 ,	
 				upgrade : function(){
+					this.ratio += 0.1 ;
 					this.nowLevel ++ ;
 				},			
 				canvas : {
@@ -1588,7 +1626,7 @@ var Defender = (function(){
 				effect : data.effect || [] ,
 				type : data.type || "passive" ,
 				f : data.f ,
-				effectRatio : data.effectRatio || 0 ,
+				effectRatio : data.effectRatio || -1 ,
 				timer : data.timer || 0 ,
 				speed : data.speed || 0 ,
 				target : data.target || [] ,
@@ -2670,6 +2708,7 @@ var Defender = (function(){
 		showPage : "none" ,
 		soldierList : [] ,
 		isChooseSoldier : false ,
+		consoleContent : {} ,
 		init : function(){
 			this.isChooseSoldier = false ;
 			this.soldierList = [] ;
@@ -2684,7 +2723,7 @@ var Defender = (function(){
 				x = i * 165 + 20  ;
 				var skill = [] ;
 				for ( var j = 0 ; j < mySoldierList[i].skill.length ; j ++ ){
-					var x2 = this.character.skill.x + 10 , y2 = this.character.skill.y + j * 49 + 36;
+					var x2 = this.character.skill.x + 14 , y2 = this.character.skill.y + j * 74 + 54;
 					var n = 1 ;
 					if ( mySoldierList[i].skill[j].nowLevel <= 0 ){
 						n = 2
@@ -2694,10 +2733,10 @@ var Defender = (function(){
 						u = 0 ;
 					} 
 					var s = { x : x2 , y : y2 , canvas : canvasMap["skill_back"] , w : canvasMap["skill_back"].width , h : canvasMap["skill_back"].height ,
-						icon : { x : x2 + 3 , y : y2 + 2, canvas : canvasMap[mySoldierList[i].skill[j].canvasName+"_icon"] , nowFrame : n , w : canvasMap[mySoldierList[i].skill[j].canvasName+"_icon"].width/3 , h : canvasMap[mySoldierList[i].skill[j].canvasName+"_icon"].height , ratio : 1.2 } ,
-						upgrade : { x : x2 + 159 , y : y2 + 26, canvas : canvasMap["upgrade"] , w : canvasMap["upgrade"].width / 2 , h : canvasMap["upgrade"].height , nowFrame : u } ,
-						name : { x : x2 + 50, y : y2 + 13, text : mySoldierList[i].skill[j].name } ,
-						nowLevel : { x : x2 + 50, y : y2 + 36 , text : mySoldierList[i].skill[j].nowLevel } 
+						icon : { x : x2 + 7 , y : y2 + 5, canvas : canvasMap[mySoldierList[i].skill[j].canvasName+"_icon"] , nowFrame : n , w : canvasMap[mySoldierList[i].skill[j].canvasName+"_icon"].width/3 , h : canvasMap[mySoldierList[i].skill[j].canvasName+"_icon"].height , ratio : 1.7 } ,
+						upgrade : { x : x2 + 235 , y : y2 + 39, canvas : canvasMap["upgrade"] , w : canvasMap["upgrade"].width / 2 , h : canvasMap["upgrade"].height , nowFrame : u } ,
+						name : { x : x2 + 75, y : y2 + 27, text : mySoldierList[i].skill[j].name } ,
+						nowLevel : { x : x2 + 75, y : y2 + 59 , text : mySoldierList[i].skill[j].nowLevel } 
 					} ;
 					skill.push(s);
 				}
@@ -2717,9 +2756,17 @@ var Defender = (function(){
 				] 
 			};
 			this.character = { 
-				chooseSoldier : { x : 8 , y : 490 , w : canvasMap["choose_soldier2"].width , h : canvasMap["choose_soldier2"].height , canvas : canvasMap["choose_soldier2"] },
-				status : { x : 400 , y : 300 , w : canvasMap["status"].width , h : canvasMap["status"].height , canvas : canvasMap["status"] },
-				skill : { x : 700 , y : 100 , w : canvasMap["skill"].width , h : canvasMap["skill"].height , canvas : canvasMap["skill"] }
+				chooseSoldier : { x : 8 , y : 540 , w : canvasMap["choose_soldier2"].width , h : canvasMap["choose_soldier2"].height , canvas : canvasMap["choose_soldier2"] },
+				status : { x : 690 , y : 280 , w : canvasMap["status"].width , h : canvasMap["status"].height , canvas : canvasMap["status"] },
+				skill : { x : 10 , y : 50 , w : canvasMap["skill"].width , h : canvasMap["skill"].height , canvas : canvasMap["skill"] },
+				item : { x : 690 , y : 30 , w: canvasMap["item"].width , h : canvasMap["item"].height , canvas : canvasMap["item"] },
+				equip : { x : 342 , y : 30 , w : canvasMap["equip"].width , h : canvasMap["equip"].height , canvas : canvasMap["equip"] },
+				console : { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : canvasMap["console"] ,
+					icon : { x : 1050 , y : 250 } ,
+					name : { x : 1115 , y : 285 } ,
+					content : [{ x : 1060 , y : 340 } ] 
+				}
+
 			};
 
 			this.initCharacterObject();
@@ -2785,7 +2832,6 @@ var Defender = (function(){
 		setMouseEnterSoldierOver : function(i){
 			town.isChooseSoldier = true ;
 			document.body.style.cursor = "pointer" ;
-			mouseOver = "soldier" + i ;
 		},
 		setMouseEnterSoldierClick : function(i){
 			town.isChooseSoldier = true ;
@@ -2798,11 +2844,35 @@ var Defender = (function(){
 		setMouseEnterUpgradeOver : function(i){
 			document.body.style.cursor = "pointer" ;
 		},
+		setMouseEnterSkillClick : function(i,j){
+			this.character.console.content = [{ x : 1060 , y : 340 }] ;
+			var skill = mySoldierList[i].skill[j] ;
+			town.character.console.icon.canvas = canvasMap[skill.canvasName+"_icon"] ;
+			town.character.console.icon.w = canvasMap[skill.canvasName+"_icon"].width / 3 ;
+			town.character.console.icon.h = canvasMap[skill.canvasName+"_icon"].height ;
+			town.character.console.icon.nowFrame = 1 ;
+			town.character.console.icon.ratio = 1.7 ;
+			town.character.console.name.text = skill.name ;
+			town.character.console.content[0].text = skill.description ;
+			if ( skill.type === "active" ){
+				if ( skill.effectRatio !== -1)	
+					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+skill.effectRatio*100+"%"});
+				else 
+					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+skill.ratio*100+"%"});
+				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Speed : "+skill.speed});
+			} else {
+				if ( skill.ratio !== undefined);	
+					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+skill.ratio*100+"%"});
+				if ( skill.chance !== undefined);	
+					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Probability : "+skill.probability});
+			}
+		},
 		setMouseEnterUpgradeClick : function(i,j){
 			document.body.style.cursor = "default" ;
 			mySoldierList[i].point -- ;
 			mySoldierList[i].skill[j].upgrade();
 			town.initCharacterObject();
+			town.setMouseEnterSkillClick(i,j);
 		},
 		detectMouseEnterOver : function(temp,offsetX,offsetY,ratio){
 			if ( town.showPage === "map"  ){
@@ -2815,7 +2885,7 @@ var Defender = (function(){
 				if ( common.isMouseEnterRange(temp,town.map.closeButton,offsetX,offsetY,ratio) ){
 					town.setMouseEnterMapCloseOver() ;
 					return ;
-				} 
+				}
 			} else if ( town.showPage === "character" ){
 				for ( var i = 0 ; i < town.soldierList.length ; i ++ ){
 					if ( common.isMouseEnterRange(temp,town.soldierList[i],offsetX,offsetY,ratio) ){
@@ -2835,7 +2905,6 @@ var Defender = (function(){
 						}
 					}
 				}
-				/*
 				for ( var i = 0 ; i < town.soldierList.length ; i ++ ){
 					if ( mouseOver === "soldier" + i ){
 						for ( var j = 0 ; j < town.soldierList[i].skill.length ; j ++ ){
@@ -2846,7 +2915,6 @@ var Defender = (function(){
 						}
 					}
 				}
-				*/
 				document.body.style.cursor = "default" ;
 			} else {
 				if ( common.isMouseEnterRange(temp,town.box,offsetX,offsetY,ratio) ){
@@ -2855,6 +2923,8 @@ var Defender = (function(){
 				} else if ( common.isMouseEnterRange(temp,town.battle,offsetX,offsetY,ratio) ){
 					town.setMouseEnterBattleOver() ;
 					return ;
+				} else {
+					common.setMouseEnterNone();
 				}
 			}
 			/*
@@ -2898,6 +2968,29 @@ var Defender = (function(){
 						}
 					}
 				}
+				for ( var i = 0 ; i < town.soldierList.length ; i ++ ){
+					if ( mouseOver === "soldier" + i ){
+						for ( var j = 0 ; j < town.soldierList[i].skill.length ; j ++ ){
+							if ( common.isMouseEnterRange(temp,town.soldierList[i].skill[j],offsetX,offsetY,ratio) ){
+								town.setMouseEnterSkillClick(i,j) ;
+								return ;
+							} 
+						}
+					}
+				}
+				if ( common.isMouseEnterRange(temp,town.character.console,offsetX,offsetY,ratio) ){
+					return ;
+				} else if ( common.isMouseEnterRange(temp,town.character.skill,offsetX,offsetY,ratio) ){
+					return ;
+				} else if ( common.isMouseEnterRange(temp,town.character.item,offsetX,offsetY,ratio) ){
+					return ;
+				} else if ( common.isMouseEnterRange(temp,town.character.equip,offsetX,offsetY,ratio) ){
+					return ;
+				} else if ( common.isMouseEnterRange(temp,town.character.status,offsetX,offsetY,ratio) ){
+					return ;
+				} else if ( common.isMouseEnterRange(temp,town.character.chooseSoldier,offsetX,offsetY,ratio) ){
+					return ;
+				} 
 				town.showPage = "none" ;
 			} else {
 				if ( common.isMouseEnterRange(temp,town.box,offsetX,offsetY,ratio) ){
@@ -2945,17 +3038,39 @@ var Defender = (function(){
 			}
 		},		
 		showCharacter : function(){
+
+			gameCtx.fillStyle = "black" ;
+			gameCtx.font="26px Arial";
+
 			common.drawObject(this.character.status);
 			common.drawObject(this.character.skill);
 
+
+			common.drawObject(this.character.item);
+			common.drawObject(this.character.equip);
+			common.drawObject(this.character.console);
+			if ( this.character.console.icon.canvas !== undefined && this.character.console.icon.canvas !== null ){
+				common.drawObject(this.character.console.icon);
+				common.drawObject(this.character.console.name);
+				gameCtx.font="24px Arial";
+				var height = 34 ;
+				var y = common.wrapText(this.character.console.content[0],this.character.console.w-20,height);
+				for ( var i = 1 ; i < this.character.console.content.length ; i ++ ){
+					if ( i === 1 )
+						this.character.console.content[i].y = y + height ;
+					else 
+						this.character.console.content[i].y = this.character.console.content[i-1].y + height ;
+
+					common.drawObject(this.character.console.content[i]);
+				}
+			}
 			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
 				if ( mouseOver === "soldier" + i ){
-					gameCtx.fillStyle = "black" ;
-					gameCtx.fillText(common.getRole(mySoldierList[i].id),this.character.status.x+60,this.character.status.y+43);
-					gameCtx.fillText(mySoldierList[i].level,this.character.status.x+60,this.character.status.y+62);
-					gameCtx.fillText(mySoldierList[i].nowExp+"/"+mySoldierList[i].goalExp,this.character.status.x+60,this.character.status.y+81);
-					gameCtx.fillText(mySoldierList[i].atk,this.character.status.x+73,this.character.status.y+105);
-					gameCtx.fillText(mySoldierList[i].speed,this.character.status.x+73,this.character.status.y+124);
+					gameCtx.fillText(common.getRole(mySoldierList[i].id),this.character.status.x+120,this.character.status.y+88);
+					gameCtx.fillText(mySoldierList[i].level,this.character.status.x+120,this.character.status.y+127);
+					gameCtx.fillText(mySoldierList[i].nowExp+"/"+mySoldierList[i].goalExp,this.character.status.x+120,this.character.status.y+163);
+					gameCtx.fillText(mySoldierList[i].atk,this.character.status.x+147,this.character.status.y+212);
+					gameCtx.fillText(mySoldierList[i].speed,this.character.status.x+147,this.character.status.y+250);
 					for ( var j = 0 ; j < this.soldierList[i].skill.length ; j ++ ){
 						common.drawObject(this.soldierList[i].skill[j]);
 						common.drawObject(this.soldierList[i].skill[j].icon);
@@ -2976,7 +3091,7 @@ var Defender = (function(){
 						}
 					}
 					*/
-					gameCtx.fillText(mySoldierList[i].point,this.character.skill.x+120,this.character.skill.y+255);
+					gameCtx.fillText(mySoldierList[i].point,this.character.skill.x+180,this.character.skill.y+388);
 					break ;
 				}
 			}
