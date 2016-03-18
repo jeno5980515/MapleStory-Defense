@@ -2889,14 +2889,14 @@ var Defender = (function(){
 				if ( skill.effectRatio !== -1)	{
 					var text = skill.effectRatio*100+"%" ;
 					if ( skill.nowLevel > 0 && skill.ratioUpgrade > 0 ){
-						text += " (to" + (skill.effectRatio+skill.ratioUpgrade )*100+"%)" ;
+						text += " (" + (skill.effectRatio+skill.ratioUpgrade )*100+"%)" ;
 					}
 					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+text});
 				}
 				else {
 					var text = skill.ratio*100+"%" ;
 					if ( skill.nowLevel > 0 && skill.ratioUpgrade > 0 ){
-						text += " (to" + (skill.ratio+skill.ratioUpgrade )*100+"%)" ;
+						text += " (" + (skill.ratio+skill.ratioUpgrade )*100+"%)" ;
 					}
 					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+text});
 				}
@@ -2905,14 +2905,14 @@ var Defender = (function(){
 				if ( skill.ratio !== undefined){
 					var text = skill.ratio*100+"%" ;
 					if ( skill.nowLevel > 0 && skill.ratioUpgrade > 0 ){
-						text += " (to" + (skill.ratio+skill.ratioUpgrade )*100+"%)" ;
+						text += " (" + (skill.ratio+skill.ratioUpgrade )*100+"%)" ;
 					}
 					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Ratio : "+text});
 				}
 				if ( skill.chance !== undefined){
 					var text = skill.probability*100+"%" ;
 					if ( skill.nowLevel > 0 && skill.probabilityUpgrade > 0 ){
-						text += " (to" + (skill.probability+skill.probabilityUpgrade )*100+"%)" ;
+						text += " (" + (skill.probability+skill.probabilityUpgrade )*100+"%)" ;
 					}
 					town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Probability : "+text});
 				}
