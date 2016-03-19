@@ -8,10 +8,11 @@ var Defender = (function(){
 	var IE = "ActiveXObject" in window ;
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
-	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart","info","info_back","info_card","info_close","fullscreen",
+	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart","info","info_back","info_card","info_close","fullscreen","tick",
 	"bg_town_back0","bg_town_back1","bg_town_back2","bg_town_back3","bg_town_back4","bg_town_back5","bg_town_back6","bg_town_back7",
 	"box","battle","status","choose_soldier_back2","choose_soldier2","skill","up","upgrade","skill_back","item","equip","console",
 	"tag0","tag1","tag2","map_0",
+	"item_0","item_1",
 	"archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
 	"magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1",
 	"rogue_stand","rogue_attack","rogue_hit","rogue_attack_effect","rogue_skill0_icon","rogue_skill0_hit","rogue_skill0_effect","rogue_skill0","rogue_skill0_hit_effect","rogue_skill1_icon","rogue_skill1_hit","rogue_skill1_effect","rogue_skill1",
@@ -32,8 +33,10 @@ var Defender = (function(){
 	var monsterIdList = ['snail','bat',"ironhog"];
 	var roleDescriptionList = ['beginner','archer','magician','rogue',"swordman"] ;
 	var monsterDescriptionList = ['snail','bat',"ironhog"] ;
+	var itemIdList = ["Sword","sapphireStaff"] ;
 	var soldierMap = {} ; 
 	var monsterMap = {} ;
+	var itemMap = {} ;
 	var monsterList = [] ;
 	var monsterTypeList = [] ;
 	var animationList = [] ;
@@ -42,6 +45,7 @@ var Defender = (function(){
 	var fullscreen = {} ;
 	var doneStage = 0 ;
 	var money = 0 ;
+	var itemList = [] ;
 	var invokeAnimationTimer = 0 , invokeAnimationDelay = 5 , invokeAnimationNowFrame = 0 , invokeAnimationTotalFrame = 8 ;
 
 	var setting = {				
@@ -100,6 +104,20 @@ var Defender = (function(){
 	}
 
 	var common = {
+		createItem : function(data){
+			var item = {
+				name : data.name || "" ,
+				id : data.id || 0 ,
+				canvas : canvasMap["item_"+data.id] ,
+				point : data.point || 0 ,
+				effect : data.effect || [] ,
+				f : data.f ,
+				description : data.description || "" ,
+				type : data.type ,
+				role : data.role || [0,1,2,3,4]
+			}
+			return item ;
+		},
       	wrapText : function(t, maxWidth, lineHeight) {
       		var context = gameCtx , x = t.x , y = t.y , text = t.text ;
 			var words = text.split(' ');
@@ -251,9 +269,36 @@ var Defender = (function(){
 			}
 			return f ;
 		},
+		initItemMap : function(){
+			var sword = common.createItem({
+				id : 0 ,
+				name : "Sword" ,
+				type : "weapon" ,
+				description : "Increase damage." ,
+				point : 2 ,
+				role : [0] ,
+				f : function(d){
+					d.itemAtk += this.point ;
+				}
+			});
+			itemMap["sword"] = sword ;
+			var sapphireStaff = common.createItem({
+				id : 1 ,
+				name : "Sapphire Staff" ,
+				type : "weapon" ,
+				description : "Increase damage." ,
+				role : [2] ,
+				point : 3 ,
+				f : function(d){
+					d.itemAtk += this.point ;
+				}
+			});
+			itemMap["sapphireStaff"] = sapphireStaff ;
+		},
 		initSoldierMap : function(){
 
 			var beginner = common.createSoldier({
+				name : "Beginner" ,
 				id : 0,
 				atk : 15,
 				speed: 60,
@@ -414,6 +459,7 @@ var Defender = (function(){
 			}) ;
 
 			var archer = common.createSoldier({
+				name : "Archer" ,
 				id : 1,
 				atk : 30,
 				speed: 40,
@@ -642,6 +688,7 @@ var Defender = (function(){
 			}) ;
 
 			var magician = common.createSoldier({
+				name : "Magician" ,
 				id : 2,
 				atk : 60,
 				speed: 100,
@@ -872,6 +919,7 @@ var Defender = (function(){
 			}) ;
 
 			var rogue = common.createSoldier({
+				name : "Rogue" ,
 				id : 3,
 				atk : 50,
 				speed: 30,
@@ -1091,6 +1139,7 @@ var Defender = (function(){
 			}) ;
 
 			var swordman = common.createSoldier({
+				name : "Swordman" ,
 				id : 4,
 				atk : 60,
 				speed: 150,
@@ -1472,6 +1521,7 @@ var Defender = (function(){
 		},
 		createSoldier : function(data){
 			var soldier = {
+				name : data.name || "" ,
 				state : "stand" ,
 				stand : {
 					nowFrame : 0 ,
@@ -1515,9 +1565,18 @@ var Defender = (function(){
 				attackEffectVx : data.attackEffectVx || 0 ,
 				attackEffectVy : data.attackEffectVy || 0 ,
 				attackEffectDelay : data.attackEffectDelay || 10 ,
+				equipment : {} ,
 				init : function(){
 					this.setStateCanvas();
 					return this ;
+				},
+				refreshState : function(){
+					this.itemAtk = 0 ;
+					for ( var e in this.equipment ){
+						if ( this.equipment[e] !== undefined )
+							this.equipment[e].f(this);
+					}
+					this.tempAtk = this.atk + this.itemAtk ;
 				},
 				reset : function(){
 					this.state = "stand" ;
@@ -1529,6 +1588,26 @@ var Defender = (function(){
 						this.skill[i].reset(); 
 					}
 				},
+				equip : function(index){
+					var item = itemList[index] ;
+					var type = item.type ;
+					if ( this.equipment[type] !== undefined ){
+						itemList[index] = this.equipment[type] ;
+					} else {
+						itemList.splice(index,1);
+					}
+					this.equipment[type] = common.clone(item) ;
+					town.refreshItemList();
+					this.refreshState();
+				},
+				removeEquip : function(type){
+					var item = this.equipment[type] ;
+					itemList.push(common.clone(this.equipment[type]));
+					this.equipment[type] = undefined ;
+					town.refreshItemList();
+					town.initCharacterObject();
+					this.refreshState();
+				},
 				isAttack : function(x,y){
 					if ( preStage.isGameOver === true || preStage.isGameWin === true )
 						return ;
@@ -1536,7 +1615,7 @@ var Defender = (function(){
 						if ( this.skill[i].nowLevel > 0 ){
 							if (  this.skill[i].type === "active" && ( this.state === "stand" || this.state === this.skill[i].canvas.state ) && this.atkTimer <= 0  ){
 								this.tempAttackType = this.attackType ;
-								var result = this.skill[i].f(x,y,this.range,this.state,this[this.state],this.atk,this.effect,this.skill[i].ratio,this.tempAttackType) ;
+								var result = this.skill[i].f(x,y,this.range,this.state,this[this.state],this.tempAtk,this.effect,this.skill[i].ratio,this.tempAttackType) ;
 								var state = result.state ;
 								var done = result.done ;
 								if ( state === "stand" && done === true ){
@@ -1548,7 +1627,7 @@ var Defender = (function(){
 									this.skill[i].init(this.effect);
 								}
 							} else {
-								var result = this.skill[i].f(x,y,this.range,"null",this[this.state],this.atk) ;
+								var result = this.skill[i].f(x,y,this.range,"null",this[this.state],this.tempAtk) ;
 							}
 						}
 					}
@@ -1572,7 +1651,7 @@ var Defender = (function(){
 						if ( this.attack.effectFrame === this.attack.nowFrame ){
 							this.tempAttackType = this.attackType ;
 							for ( var i = 0 ; i < this.target.length ; i ++  ){
-								var atkSum = { result : this.atk , state : [] } ;
+								var atkSum = { result : this.tempAtk , state : [] } ;
 								for ( var j = 0 ; j < this.effect.length ; j ++ ){
 									this.effect[j].f(atkSum);
 								}
@@ -1723,10 +1802,16 @@ var Defender = (function(){
 			var w = ratio.w , h = ratio.h ;
 			return { 'temp' : temp , 'tempX': tempX , 'tempY' : tempY , 'offsetX' : offsetX , 'offsetY' : offsetY , 'ratio' : ratio , 'w' : w , 'h' : h} ;
 		},
-		setMouseEvent : function(over,click){
+		setMouseEvent : function(over,click,dblclick){
 			document.onclick = click ;
 			document.onmousemove = over ;
-			//document.ontouchend = click ;
+			if ( dblclick !== undefined ){
+				document.ondblclick = dblclick ;
+			} else {
+				document.ondblclick = function(){
+					;
+				}
+			}
 		} ,
 		setMouseEnterNone : function(){
 			document.body.style.cursor = "default" ;
@@ -1880,6 +1965,13 @@ var Defender = (function(){
 				fullscreen = { x : 1220 , y : 20 , canvas : canvasMap["fullscreen"] , w : canvasMap["fullscreen"].width ,h : canvasMap["fullscreen"].height } ;		
 				common.initSoldierMap();
 				common.initMonsterMap();
+				common.initItemMap();
+				itemList.push(common.clone(itemMap["sword"]));
+				itemList.push(common.clone(itemMap["sapphireStaff"]));
+				itemList.push(common.clone(itemMap["sword"]));
+				itemList.push(common.clone(itemMap["sapphireStaff"]));
+				itemList.push(common.clone(itemMap["sword"]));
+				itemList.push(common.clone(itemMap["sword"]));
 				common.initMySoldierList();
 				common.initNumberDamage();
 				nowPage = 'town' ;
@@ -2359,7 +2451,7 @@ var Defender = (function(){
 						mySoldierList[soldierIndex].stand.nowFrame = 0 ;
 					}
 				}
-				gameCtx.fillText(roleList[mySoldierList[soldierIndex].id],x,y+98);
+				gameCtx.fillText(mySoldierList[soldierIndex].name,x,y+98);
 			},
 			showMySoldierList :function(){
 				for ( var i = 0 , j = 0 ; i < mySoldierList.length ; i ++ ){
@@ -2566,8 +2658,8 @@ var Defender = (function(){
 				invokeList[index].soldier.goalExp = Math.round(1.09*invokeList[index].soldier.goalExp) ;
 			} 
 			invokeList[index].soldier.atk += 2 ;
-			invokeList[index].soldier.tempAtk += 2 ;
 			invokeList[index].soldier.point ++ ;
+			invokeList[index].soldier.refreshState();
 		},
 		showAddExp : function(){
 			this.expDelay = 0 ;
@@ -2757,12 +2849,26 @@ var Defender = (function(){
 		soldierList : [] ,
 		isChooseSoldier : false ,
 		consoleContent : {} ,
+		item : null ,
 		init : function(){
 			this.isChooseSoldier = false ;
+			this.item = null ;
 			this.soldierList = [] ;
 			this.showPage = "none" ;
 			this.initObject();
 			animationList = [] ;
+		},
+		refreshItemList : function(){
+			town.character.item.list = [] ;
+			var x = town.character.item.x + 21 , y = town.character.item.y + 60;
+			for ( var i = 0 ; i < itemList.length ; i ++ ){
+				var item = itemList[i] ;
+				town.character.item.list.push({x:x,y:y,w:item.canvas.width,h:item.canvas.height,canvas:item.canvas}) ;
+				x += 72 ;
+				if ( i % 4 === 3 ){
+					x = town.character.item.x + 21 , y += 70 ;
+				}
+			}
 		},
 		initCharacterObject : function(){
 			this.soldierList = [] ;
@@ -2788,10 +2894,16 @@ var Defender = (function(){
 					} ;
 					skill.push(s);
 				}
-				this.soldierList.push({x:x,y:y,w:canvasMap['choose_soldier_back2'].width,h:canvasMap['choose_soldier_back2'].height,canvas:canvasMap['choose_soldier_back2'],skill:skill});
+				var equip = [] ;
+				if ( mySoldierList[i].equipment["weapon"] !== undefined ){
+
+					equip.push({x : 555 , y : 305 , canvas:mySoldierList[i].equipment["weapon"].canvas , w : mySoldierList[i].equipment["weapon"].canvas.width , h : mySoldierList[i].equipment["weapon"].canvas.height , item : mySoldierList[i].equipment["weapon"] }) ;
+				}
+				this.soldierList.push({x:x,y:y,w:canvasMap['choose_soldier_back2'].width,h:canvasMap['choose_soldier_back2'].height,canvas:canvasMap['choose_soldier_back2'],skill:skill,equip:equip});
 			}
 		},
 		initConsole : function(){
+			town.item = null ;
 			town.character.console = { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : canvasMap["console"] ,
 				icon : { x : 1050 , y : 250 } ,
 				name : { x : 1115 , y : 285 } ,
@@ -2814,7 +2926,9 @@ var Defender = (function(){
 				chooseSoldier : { x : 8 , y : 540 , w : canvasMap["choose_soldier2"].width , h : canvasMap["choose_soldier2"].height , canvas : canvasMap["choose_soldier2"] },
 				status : { x : 690 , y : 280 , w : canvasMap["status"].width , h : canvasMap["status"].height , canvas : canvasMap["status"] },
 				skill : { x : 10 , y : 50 , w : canvasMap["skill"].width , h : canvasMap["skill"].height , canvas : canvasMap["skill"] },
-				item : { x : 690 , y : 30 , w: canvasMap["item"].width , h : canvasMap["item"].height , canvas : canvasMap["item"] },
+				item : { x : 690 , y : 30 , w: canvasMap["item"].width , h : canvasMap["item"].height , canvas : canvasMap["item"] ,
+					list : [] 
+				},
 				equip : { x : 342 , y : 30 , w : canvasMap["equip"].width , h : canvasMap["equip"].height , canvas : canvasMap["equip"] },
 				console : { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : canvasMap["console"] ,
 					icon : { x : 1050 , y : 250 } ,
@@ -2825,6 +2939,7 @@ var Defender = (function(){
 			};
 
 			this.initCharacterObject();
+			this.refreshItemList();
 		},
 		showBackground : function(){
 			gameCtx.drawImage(canvasMap['bg_town_back5'],0,0);
@@ -2899,6 +3014,61 @@ var Defender = (function(){
 		},
 		setMouseEnterUpgradeOver : function(i){
 			document.body.style.cursor = "pointer" ;
+		},
+		setMouseEnterEquipOver : function(i,j){
+			document.body.style.cursor = "pointer" ;
+		},
+		setMouseEnterEquipClick : function(i,j){
+			town.initConsole();
+			town.item = this.soldierList[i].equip[j].item ;
+			town.character.console.icon.canvas = itemList[i].canvas ;
+			town.character.console.icon.w = itemList[i].canvas.width ;
+			town.character.console.icon.h = itemList[i].canvas.height ;
+			town.character.console.icon.x += 10 , town.character.console.icon.y += 10 ; 
+			town.character.console.name.x += 10 , town.character.console.name.y += 10 ;
+			town.character.console.name.text = itemList[i].name ;
+			town.character.console.content[0].text = itemList[i].description ;
+			if ( itemList[i].type !== undefined ){
+				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Type : "+itemList[i].type});
+			} 
+			if ( itemList[i].point !== undefined ){
+				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Point : "+itemList[i].point});
+			} 
+		},
+		setMouseEnterEquipDblclick : function(i,j){
+			var type = this.soldierList[i].equip[j].item.type ;
+			mySoldierList[i].removeEquip(type) ;
+		},
+		setMouseEnterItemOver : function(i){
+			document.body.style.cursor = "pointer" ;
+		},
+		setMouseEnterItemClick : function(i){
+			town.initConsole();
+			town.item = itemList[i] ;
+			town.character.console.icon.canvas = itemList[i].canvas ;
+			town.character.console.icon.w = itemList[i].canvas.width ;
+			town.character.console.icon.h = itemList[i].canvas.height ;
+			town.character.console.icon.x += 10 , town.character.console.icon.y += 10 ; 
+			town.character.console.name.x += 10 , town.character.console.name.y += 10 ;
+			town.character.console.name.text = itemList[i].name ;
+			town.character.console.content[0].text = itemList[i].description ;
+			if ( itemList[i].type !== undefined ){
+				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Type : "+itemList[i].type});
+			} 
+			if ( itemList[i].point !== undefined ){
+				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Point : "+itemList[i].point});
+			} 
+		},		
+		setMouseEnterItemDblClick : function(j){
+			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
+				if ( mouseOver === "soldier" + i ){
+					if ( itemList[j].role.indexOf(i) !== -1 ){
+						mySoldierList[i].equip(j) ;
+						town.initCharacterObject();
+					}
+					return ;
+				}
+			}
 		},
 		setMouseEnterSkillClick : function(i,j){
 			this.character.console.content = [{ x : 1060 , y : 340 }] ;
@@ -2994,6 +3164,23 @@ var Defender = (function(){
 						}
 					}
 				}
+				for ( var i = 0 ; i < town.character.item.list.length ; i ++ ){
+					if ( common.isMouseEnterRange(temp,town.character.item.list[i],offsetX,offsetY,ratio) ){
+						town.setMouseEnterItemOver(i) ;
+						return ;
+					} 
+				}
+				for ( var i = 0 ; i < this.soldierList.length ; i ++ ){
+					if ( mouseOver === "soldier" + i ){
+						for ( var j = 0 ; j < this.soldierList[i].equip.length ; j ++ ){
+							if ( common.isMouseEnterRange(temp,this.soldierList[i].equip[j],offsetX,offsetY,ratio) ){
+								town.setMouseEnterEquipOver(i,j) ;
+								return ;
+							} 
+						}
+						break ;
+					}
+				}
 				document.body.style.cursor = "default" ;
 			} else {
 				if ( common.isMouseEnterRange(temp,town.box,offsetX,offsetY,ratio) ){
@@ -3056,6 +3243,23 @@ var Defender = (function(){
 							} 
 						}
 					}
+				}				
+				for ( var i = 0 ; i < town.character.item.list.length ; i ++ ){
+					if ( common.isMouseEnterRange(temp,town.character.item.list[i],offsetX,offsetY,ratio) ){
+						town.setMouseEnterItemClick(i) ;
+						return ;
+					} 
+				}
+				for ( var i = 0 ; i < this.soldierList.length ; i ++ ){
+					if ( mouseOver === "soldier" + i ){
+						for ( var j = 0 ; j < this.soldierList[i].equip.length ; j ++ ){
+							if ( common.isMouseEnterRange(temp,this.soldierList[i].equip[j],offsetX,offsetY,ratio) ){
+								town.setMouseEnterEquipClick(i,j) ;
+								return ;
+							} 
+						}
+						break ;
+					}
 				}
 				if ( common.isMouseEnterRange(temp,town.character.console,offsetX,offsetY,ratio) ){
 					return ;
@@ -3089,6 +3293,29 @@ var Defender = (function(){
 			}
 			common.setMouseEnterNone();
 		},
+		detectMouseEnterDblClick : function(temp,offsetX,offsetY,ratio){
+			if ( town.showPage === "character" ){	
+				for ( var i = 0 ; i < town.character.item.list.length ; i ++ ){
+					if ( common.isMouseEnterRange(temp,town.character.item.list[i],offsetX,offsetY,ratio) ){
+						town.setMouseEnterItemDblClick(i) ;
+						return ;
+					} 
+				}
+				for ( var i = 0 ; i < this.soldierList.length ; i ++ ){
+					if ( mouseOver === "soldier" + i ){
+						for ( var j = 0 ; j < this.soldierList[i].equip.length ; j ++ ){
+							if ( common.isMouseEnterRange(temp,this.soldierList[i].equip[j],offsetX,offsetY,ratio) ){
+								town.setMouseEnterEquipDblclick(i,j) ;
+								return ;
+							} 
+						}
+						return ;
+					}
+				}
+			} else {
+				;
+			}
+		},
 		mouseOver :function(e){
 			var info = common.getSizeInfo(e) ;
 			town.detectMouseEnterOver(info.temp,info.offsetX,info.offsetY,info.ratio);
@@ -3096,6 +3323,10 @@ var Defender = (function(){
 		mouseClick: function(e){
 			var info = common.getSizeInfo(e) ;
 			town.detectMouseEnterClick(info.temp,info.offsetX,info.offsetY,info.ratio);
+		},
+		mouseDblclick: function(e){
+			var info = common.getSizeInfo(e) ;
+			town.detectMouseEnterDblClick(info.temp,info.offsetX,info.offsetY,info.ratio);
 		},
 		showObject : function(){
 			gameCtx.drawImage(canvasMap['box'],this.box.x,this.box.y);
@@ -3126,7 +3357,19 @@ var Defender = (function(){
 
 
 			common.drawObject(this.character.item);
+			for ( var i = 0 ; i < this.character.item.list.length ; i ++ ){
+				common.drawObject(this.character.item.list[i]);
+			}
+
 			common.drawObject(this.character.equip);
+			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
+				if ( mouseOver === "soldier" + i ){
+					for ( var j = 0 ; j < this.soldierList[i].equip.length ; j ++ ){
+						common.drawObject(this.soldierList[i].equip[j]);
+					}
+					break ;
+				}
+			}
 			common.drawObject(this.character.console);
 			if ( this.character.console.icon.canvas !== undefined && this.character.console.icon.canvas !== null ){
 				common.drawObject(this.character.console.icon);
@@ -3145,10 +3388,16 @@ var Defender = (function(){
 			}
 			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
 				if ( mouseOver === "soldier" + i ){
-					gameCtx.fillText(common.getRole(mySoldierList[i].id),this.character.status.x+120,this.character.status.y+88);
+					gameCtx.fillText(mySoldierList[i].name,this.character.status.x+120,this.character.status.y+88);
 					gameCtx.fillText(mySoldierList[i].level,this.character.status.x+120,this.character.status.y+127);
 					gameCtx.fillText(mySoldierList[i].nowExp+"/"+mySoldierList[i].goalExp,this.character.status.x+120,this.character.status.y+163);
-					gameCtx.fillText(mySoldierList[i].atk,this.character.status.x+147,this.character.status.y+212);
+					var atkText = mySoldierList[i].atk ;
+					if ( mySoldierList[i].itemAtk > 0 ){
+						atkText += " (+" + mySoldierList[i].itemAtk + ")" ;
+					} else if ( mySoldierList[i].itemAtk < 0  ){
+						atkText += " (-" + mySoldierList[i].itemAtk + ")" ;
+					}
+					gameCtx.fillText(atkText,this.character.status.x+147,this.character.status.y+212);
 					gameCtx.fillText(mySoldierList[i].speed,this.character.status.x+147,this.character.status.y+250);
 					for ( var j = 0 ; j < this.soldierList[i].skill.length ; j ++ ){
 						common.drawObject(this.soldierList[i].skill[j]);
@@ -3157,19 +3406,6 @@ var Defender = (function(){
 						common.drawObject(this.soldierList[i].skill[j].name);
 						common.drawObject(this.soldierList[i].skill[j].nowLevel);
 					}
-					/*
-					for ( var j = 0 ; j < mySoldierList[i].skill.length ; j ++ ){
-						var canvas = canvasMap[mySoldierList[i].skill[j].canvasName+"_icon"] ;
-						gameCtx.drawImage(canvas,canvas.width/3*1,0,canvas.width/3,canvas.height,this.character.skill.x+13,this.character.skill.y+j*49+39,canvas.width/3*1.2,canvas.height*1.2);
-						gameCtx.fillText(mySoldierList[i].skill[j].name,this.character.skill.x+60,this.character.skill.y+j*49+50);
-						gameCtx.fillText(mySoldierList[i].skill[j].nowLevel,this.character.skill.x+60,this.character.skill.y+j*49+73);
-						if ( mySoldierList[i].point >= 0 && mySoldierList[i].skill[j].nowLevel < mySoldierList[i].skill[j].topLevel ){
-							gameCtx.drawImage(canvasMap["upgrade"],canvasMap["upgrade"].width/2,0,canvasMap["upgrade"].width/2,canvasMap["upgrade"].height,this.character.skill.x+169,this.character.skill.y+j*49+62,canvasMap["upgrade"].width/2,canvasMap["upgrade"].height);
-						} else {
-							gameCtx.drawImage(canvasMap["upgrade"],0,0,canvasMap["upgrade"].width/2,canvasMap["upgrade"].height,this.character.skill.x+169,this.character.skill.y+j*49+62,canvasMap["upgrade"].width/2,canvasMap["upgrade"].height);
-						}
-					}
-					*/
 					gameCtx.fillText(mySoldierList[i].point,this.character.skill.x+180,this.character.skill.y+388);
 					break ;
 				}
@@ -3192,13 +3428,23 @@ var Defender = (function(){
 						mySoldierList[i].stand.nowFrame = 0 ;
 					}
 				}
-				gameCtx.fillText(common.getRole(mySoldierList[i].id),x,y+100);
+				gameCtx.fillText(mySoldierList[i].name,x,y+100);
 
+			}
+			if ( town.item !== null ){
+				for ( var i = 0 ; i < this.soldierList.length ; i ++ ){
+					for ( var j = 0 ; j < town.item.role.length ; j ++ ){
+						if ( town.item.role[j] === mySoldierList[i].id ){ 
+							gameCtx.drawImage(canvasMap["tick"],this.soldierList[i].x+10,this.soldierList[i].y+10);
+							break ;
+						}
+					}
+				}
 				
 			}
 		},
 		showAll : function(){
-			common.setMouseEvent(town.mouseOver,town.mouseClick);
+			common.setMouseEvent(town.mouseOver,town.mouseClick,town.mouseDblclick);
 			this.showBackground();
 			this.showObject();
 			if ( town.showPage === "map" ){
