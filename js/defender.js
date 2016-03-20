@@ -10,9 +10,9 @@ var Defender = (function(){
 	var defenderList = [] ;
 	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart","info","info_back","info_card","info_close","fullscreen","tick",
 	"bg_town_back0","bg_town_back1","bg_town_back2","bg_town_back3","bg_town_back4","bg_town_back5","bg_town_back6","bg_town_back7",
-	"box","battle","status","choose_soldier_back2","choose_soldier2","skill","up","upgrade","skill_back","item","equip","console",
+	"box","battle","status","choose_soldier_back2","choose_soldier2","skill","up","upgrade","skill_back","item","equip","console","up","down",
 	"tag0","tag1","tag2","map_0",
-	"item_0","item_1",
+	"money","item_0","item_1",
 	"archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
 	"magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1",
 	"rogue_stand","rogue_attack","rogue_hit","rogue_attack_effect","rogue_skill0_icon","rogue_skill0_hit","rogue_skill0_effect","rogue_skill0","rogue_skill0_hit_effect","rogue_skill1_icon","rogue_skill1_hit","rogue_skill1_effect","rogue_skill1",
@@ -33,7 +33,6 @@ var Defender = (function(){
 	var monsterIdList = ['snail','bat',"ironhog"];
 	var roleDescriptionList = ['beginner','archer','magician','rogue',"swordman"] ;
 	var monsterDescriptionList = ['snail','bat',"ironhog"] ;
-	var itemIdList = ["Sword","sapphireStaff"] ;
 	var soldierMap = {} ; 
 	var monsterMap = {} ;
 	var itemMap = {} ;
@@ -46,6 +45,8 @@ var Defender = (function(){
 	var doneStage = 0 ;
 	var money = 0 ;
 	var itemList = [] ;
+	var tempItemList = [] ;
+	var tempMoney = 0 ;
 	var invokeAnimationTimer = 0 , invokeAnimationDelay = 5 , invokeAnimationNowFrame = 0 , invokeAnimationTotalFrame = 8 ;
 
 	var setting = {				
@@ -1175,6 +1176,8 @@ var Defender = (function(){
 				dieFrame: 9,
 				offsetX : 20 ,
 				offsetY : -3 ,
+				money : 100 ,
+				item : [{name:"sword",probability:0.3},{name:"sapphireStaff",probability:0.2}] 
 			});
 			monsterMap['snail'] = snail ;
 
@@ -1225,6 +1228,7 @@ var Defender = (function(){
 				id : data.id || 0 ,
 				x : data.x || 0 ,
 				y : data.y || 370 ,
+				money : data.money || 0 ,
 				nowHp : data.nowHp || data.maxHp ,
 				maxHp : data.maxHp || 0 ,
 				def : data.def || 0 ,
@@ -1239,6 +1243,8 @@ var Defender = (function(){
 				offsetY : data.offsetY || 0 ,
 				hpDx : data.hpDx || 0 ,
 				hpDy : data.hpDy || 0 ,
+				item : data.item || [] ,
+				isFall : false ,
 				move : {
 					nowFrame : 0 ,
 					totalFrame : data.moveFrame ,
@@ -1317,6 +1323,50 @@ var Defender = (function(){
 					
 				},
 				isDie : function(){
+					if ( this.isFall === false ){
+						var di = 0 ;
+						for ( var i = 0 ; i < this.item.length ; i ++ ){
+							var r = Math.random();
+							if ( r < this.item[i].probability ){
+								var item = common.clone(itemMap[this.item[i].name]) ;
+								tempItemList.push(item);
+								common.createAnimation({
+									canvas : item.canvas ,
+									x : this.x + di + 20,
+									y : this.y - 10 ,
+									nowFrame : 0 ,
+									delay : 70 ,
+									timer : 0 ,
+									totalFrame : 0,
+									width : item.canvas.width , 
+									height : item.canvas.height ,
+									ratio : 0.7 ,
+									effect : [{type:"rotate",speed:17,remain:30},{type:"gravity",remain:30,vy:-10}] ,
+									degree : 45 
+								});
+								di += 50 ;
+							}
+						}
+						var r = Math.random();
+						if ( r <= 0.5 ){
+							common.createAnimation({
+								canvas : canvasMap["money"] ,
+								x : this.x + di + 20 ,
+								y : this.y - 8 ,
+								nowFrame : 0 ,
+								delay : 70 ,
+								timer : 0 ,
+								totalFrame : 0,
+								width : canvasMap["money"].width / 4 , 
+								height : canvasMap["money"].height ,
+								ratio : 1 ,
+								effect : [{type:"rotate",speed:17,remain:30},{type:"gravity",remain:30,vy:-10}] ,
+								degree : 45 
+							});
+							tempMoney += this.money ;
+						}
+					}
+					this.isFall = true ;
 					this.nowHp = 0 ;
 					this.hitAble = false ;
 					this.state = "die" ;
@@ -1972,6 +2022,9 @@ var Defender = (function(){
 				itemList.push(common.clone(itemMap["sapphireStaff"]));
 				itemList.push(common.clone(itemMap["sword"]));
 				itemList.push(common.clone(itemMap["sword"]));
+				itemList.push(common.clone(itemMap["sapphireStaff"]));
+				itemList.push(common.clone(itemMap["sapphireStaff"]));
+				itemList.push(common.clone(itemMap["sapphireStaff"]));
 				common.initMySoldierList();
 				common.initNumberDamage();
 				nowPage = 'town' ;
@@ -2071,8 +2124,22 @@ var Defender = (function(){
 			mouseOver = 'confirmButton' ;
 		},
 		setMouseEnterConfirmButtonClick: function(){
+			tempItemList = [] ;
+			tempMoney = 0 ;
 			document.body.style.cursor = "default" ;
-			mouseOver = 'confirmButton' ;
+			monsterList = [];
+			nowPage = "preStage" ;
+			preStage.isGameStart = false ;
+			preStage.isGameWin = false ;
+			preStage.isGameOver = false ;
+			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
+				//mySoldierList[i].isPicked = false ;
+				mySoldierList[i].reset();
+			} 
+			animationList = [] ;
+			preStage.isInitInvoke = false ;
+			//preStage.initInvoke();	
+			stage[nowStage].initMonsterList();	
 			preStage.toStage();
 		},		
 		setMouseEnterQuitButtonOver: function(){
@@ -2097,6 +2164,8 @@ var Defender = (function(){
 			}
 		},
 		setMouseEnterResetButtonClick: function(){
+			tempItemList = [] ;
+			tempMoney = 0 ;
 			if ( preStage.isGameStart === false ){
 				for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
 					mySoldierList[i].isPicked = false ;
@@ -2106,6 +2175,8 @@ var Defender = (function(){
 			}
 		},
 		setMouseEnterRestartButtonClick: function(){
+			tempItemList = [] ;
+			tempMoney = 0 ;
 			monsterList = [];
 			nowPage = "preStage" ;
 			preStage.isGameStart = false ;
@@ -2274,6 +2345,10 @@ var Defender = (function(){
 				if ( preStage.isGameStart === true )
 					gameCtx.drawImage(canvasMap['restart'],preStage.restartButton.x,preStage.restartButton.y);
 				gameCtx.drawImage(canvasMap['quit'],preStage.quitButton.x,preStage.quitButton.y);
+				itemList = itemList.concat(tempItemList);
+				tempItemList = [] ;
+				money += tempMoney ;
+				tempMoney = 0 ;
 			}
 			if ( preStage.isGameStart === false ){
 				gameCtx.drawImage(canvasMap['info'],preStage.infoButton.nowFrame*preStage.infoButton.w,0,preStage.infoButton.w,preStage.infoButton.h,preStage.infoButton.x,preStage.infoButton.y,preStage.infoButton.w,preStage.infoButton.h);
@@ -2602,7 +2677,36 @@ var Defender = (function(){
 		showAnimation : function(){
 			for ( var i = 0 ; i < animationList.length ; i ++ ){
 				var dx = animationList[i].dx || 0 , dy = animationList[i].dy || 0 ;
-				gameCtx.drawImage(animationList[i].canvas,animationList[i].nowFrame*animationList[i].width,0,animationList[i].width,animationList[i].height,animationList[i].x+dx,animationList[i].y+dy,animationList[i].width,animationList[i].height);
+				var ratio = animationList[i].ratio || 1 ;
+				if ( animationList[i].effect === undefined ||  animationList[i].effect.length === 0 ){
+					gameCtx.drawImage(animationList[i].canvas,animationList[i].nowFrame*animationList[i].width,0,animationList[i].width,animationList[i].height,animationList[i].x+dx,animationList[i].y+dy,animationList[i].width*ratio,animationList[i].height*ratio);
+				} else {
+					gameCtx.save();
+					for ( var j = 0 ; j < animationList[i].effect.length ; j ++ ){
+						if ( animationList[i].effect[j].type === "rotate" ){
+							if (animationList[i].timer >= animationList[i].delay - animationList[i].effect[j].remain  ) {
+								gameCtx.translate(animationList[i].x+animationList[i].width/2 ,animationList[i].y+animationList[i].height/2);
+								gameCtx.rotate( animationList[i].degree * Math.PI/180 );
+								gameCtx.translate(-1*(animationList[i].width)/2,-1*animationList[i].height/2);
+							} else {
+								animationList[i].degree += animationList[i].effect[j].speed ;
+								gameCtx.translate(animationList[i].x+animationList[i].width/2 ,animationList[i].y+animationList[i].height/2);
+								gameCtx.rotate( animationList[i].degree * Math.PI/180 );
+								gameCtx.translate(-1*(animationList[i].width)/2,-1*animationList[i].height/2);
+							}
+						} else if ( animationList[i].effect[j].type === "gravity" ) {
+							if (animationList[i].timer >= animationList[i].delay - animationList[i].effect[j].remain  ) {
+								;
+							} else {
+								animationList[i].effect[j].vy += 0.98 / 2 ;
+								animationList[i].y += animationList[i].effect[j].vy ;
+							}
+						}
+					}
+					gameCtx.drawImage(animationList[i].canvas,animationList[i].nowFrame*animationList[i].width,0,animationList[i].width,animationList[i].height,0+dx,0+dy,animationList[i].width*ratio,animationList[i].height*ratio);
+					//gameCtx.drawImage(animationList[i].canvas,0,0,animationList[i].width*ratio,animationList[i].height*ratio);
+					gameCtx.restore();
+				}
 				animationList[i].x += dx , animationList[i].y += dy ;
 				if ( animationList[i].timer < animationList[i].delay  ){
 					animationList[i].timer ++ ;
@@ -2809,10 +2913,10 @@ var Defender = (function(){
 				monsterList = [] ;
 				stage.addMonsterTimer = 0 ;
 				stage.monsterAllList = [] ;
-				for ( var i = 0 ; i < 1 ; i ++ ){
+				for ( var i = 0 ; i < 10 ; i ++ ){
 					stage.monsterAllList.push(common.clone(monsterMap['snail']));
-					stage.monsterAllList.push(common.clone(monsterMap['bat']));
-					stage.monsterAllList.push(common.clone(monsterMap['ironhog']));
+					//stage.monsterAllList.push(common.clone(monsterMap['bat']));
+					//stage.monsterAllList.push(common.clone(monsterMap['ironhog']));
 				}
 			},
 			initMonsterIdList : function(){
@@ -2859,9 +2963,10 @@ var Defender = (function(){
 			animationList = [] ;
 		},
 		refreshItemList : function(){
+			var page = this.character.item.nowPage ;
 			town.character.item.list = [] ;
 			var x = town.character.item.x + 21 , y = town.character.item.y + 60;
-			for ( var i = 0 ; i < itemList.length ; i ++ ){
+			for ( var i = page * 8 ; i < itemList.length && i < page * 8 + 8 ; i ++ ){
 				var item = itemList[i] ;
 				town.character.item.list.push({x:x,y:y,w:item.canvas.width,h:item.canvas.height,canvas:item.canvas}) ;
 				x += 72 ;
@@ -2927,7 +3032,10 @@ var Defender = (function(){
 				status : { x : 690 , y : 280 , w : canvasMap["status"].width , h : canvasMap["status"].height , canvas : canvasMap["status"] },
 				skill : { x : 10 , y : 50 , w : canvasMap["skill"].width , h : canvasMap["skill"].height , canvas : canvasMap["skill"] },
 				item : { x : 690 , y : 30 , w: canvasMap["item"].width , h : canvasMap["item"].height , canvas : canvasMap["item"] ,
-					list : [] 
+					list : [] ,
+					nowPage : 0 , 
+					up : { x : 995 , y : 85 , w: canvasMap["up"].width , h : canvasMap["up"].height , canvas : canvasMap["up"] } ,
+					down : { x : 995 , y : 180 , w: canvasMap["down"].width , h : canvasMap["down"].height , canvas : canvasMap["down"] } 
 				},
 				equip : { x : 342 , y : 30 , w : canvasMap["equip"].width , h : canvasMap["equip"].height , canvas : canvasMap["equip"] },
 				console : { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : canvasMap["console"] ,
@@ -3038,6 +3146,13 @@ var Defender = (function(){
 		setMouseEnterEquipDblclick : function(i,j){
 			var type = this.soldierList[i].equip[j].item.type ;
 			mySoldierList[i].removeEquip(type) ;
+		},
+		setMouseEnterItemPageOver : function(i){
+			document.body.style.cursor = "pointer" ;
+		},
+		setMouseEnterItemPageClick : function(i){
+			town.character.item.nowPage += i ;
+			town.refreshItemList();
 		},
 		setMouseEnterItemOver : function(i){
 			document.body.style.cursor = "pointer" ;
@@ -3181,6 +3296,17 @@ var Defender = (function(){
 						break ;
 					}
 				}
+				if ( common.isMouseEnterRange(temp,this.character.item.up,offsetX,offsetY,ratio) ){
+					if ( town.character.item.nowPage > 0 ){
+						town.setMouseEnterItemPageOver(-1) ;
+						return ;
+					}
+				} else if ( common.isMouseEnterRange(temp,this.character.item.down,offsetX,offsetY,ratio) ){
+					if ( (town.character.item.nowPage+1)*8 < itemList.length ){
+						town.setMouseEnterItemPageOver(1) ;
+						return ;
+					}
+				} 
 				document.body.style.cursor = "default" ;
 			} else {
 				if ( common.isMouseEnterRange(temp,town.box,offsetX,offsetY,ratio) ){
@@ -3261,6 +3387,17 @@ var Defender = (function(){
 						break ;
 					}
 				}
+				if ( common.isMouseEnterRange(temp,this.character.item.up,offsetX,offsetY,ratio) ){
+					if ( town.character.item.nowPage > 0 ){
+						town.setMouseEnterItemPageClick(-1) ;
+						return ;
+					}
+				} else if ( common.isMouseEnterRange(temp,this.character.item.down,offsetX,offsetY,ratio) ){
+					if ( (town.character.item.nowPage+1)*8 < itemList.length ){
+						town.setMouseEnterItemPageClick(1) ;
+						return ;
+					}
+				} 
 				if ( common.isMouseEnterRange(temp,town.character.console,offsetX,offsetY,ratio) ){
 					return ;
 				} else if ( common.isMouseEnterRange(temp,town.character.skill,offsetX,offsetY,ratio) ){
@@ -3360,6 +3497,12 @@ var Defender = (function(){
 			for ( var i = 0 ; i < this.character.item.list.length ; i ++ ){
 				common.drawObject(this.character.item.list[i]);
 			}
+			if ( town.character.item.nowPage > 0 )
+				common.drawObject(this.character.item.up);
+			if ( (town.character.item.nowPage+1)*8 < itemList.length )
+				common.drawObject(this.character.item.down);
+
+			gameCtx.fillText(money,this.character.item.x+65,this.character.item.y+230);
 
 			common.drawObject(this.character.equip);
 			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
