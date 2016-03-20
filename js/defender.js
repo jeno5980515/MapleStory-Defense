@@ -3372,7 +3372,7 @@ var Defender = (function(){
 				}				
 				for ( var i = 0 ; i < town.character.item.list.length ; i ++ ){
 					if ( common.isMouseEnterRange(temp,town.character.item.list[i],offsetX,offsetY,ratio) ){
-						town.setMouseEnterItemClick(i) ;
+						town.setMouseEnterItemClick(i+town.character.item.nowPage*8) ;
 						return ;
 					} 
 				}
