@@ -1,0 +1,22 @@
+<i>
+  <i image="2001008_0.png" delay="100" x="0" y="-32"/>
+  <i image="2001008_1.png" delay="100" x="0" y="-32"/>
+  <i image="2001008_2.png" delay="100" x="0" y="-32"/>
+  <i image="effect_0.png" delay="120" x="-130" y="-99"/>
+  <i image="effect_1.png" delay="120" x="-130" y="-99"/>
+  <i image="effect_2.png" delay="120" x="-130" y="-99"/>
+  <i image="effect_3.png" delay="120" x="-130" y="-99"/>
+  <i image="effect_4.png" delay="120" x="-130" y="-99"/>
+  <i image="effect_5.png" delay="120" x="-130" y="-99"/>
+  <i image="effect_6.png" delay="120" x="-130" y="-99"/>
+  <i image="ball_0.png" delay="120" x="-30" y="-28"/>
+  <i image="ball_1.png" delay="120" x="-30" y="-28"/>
+  <i image="ball_2.png" delay="120" x="-30" y="-28"/>
+  <i image="hit.0_0.png" delay="120" x="-114" y="-113"/>
+  <i image="hit.0_1.png" delay="120" x="-114" y="-113"/>
+  <i image="hit.0_2.png" delay="120" x="-114" y="-113"/>
+  <i image="hit.0_3.png" delay="120" x="-114" y="-113"/>
+  <i image="hit.0_4.png" delay="120" x="-114" y="-113"/>
+  <i image="hit.0_5.png" delay="120" x="-114" y="-113"/>
+  <i image="hit.0_6.png" delay="120" x="-114" y="-113"/>
+</i>

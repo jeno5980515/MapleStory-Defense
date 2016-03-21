@@ -1,0 +1,12 @@
+<i>
+  <i image="3000001_0.png" delay="100" x="0" y="-32"/>
+  <i image="3000001_1.png" delay="100" x="0" y="-32"/>
+  <i image="3000001_2.png" delay="100" x="0" y="-32"/>
+  <i image="damage_0.png" delay="120" x="-91" y="-8"/>
+  <i image="damage_1.png" delay="120" x="-91" y="-8"/>
+  <i image="damage_2.png" delay="120" x="-91" y="-8"/>
+  <i image="damage_3.png" delay="300" x="-91" y="-8"/>
+  <i image="damage_4.png" delay="150" x="-91" y="-8"/>
+  <i image="damage_5.png" delay="120" x="-91" y="-8"/>
+  <i image="damage_6.png" delay="120" x="-91" y="-8"/>
+</i>
