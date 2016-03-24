@@ -489,7 +489,7 @@ var Defender = (function(){
 				standOffsetY : -5 ,
 				attackOffsetY : -5 ,
 				hitDx : 5 ,
-				hitDy : 45 ,
+				hitDy : 5 ,
 				skill : [doubleArrow,criticalArrow] ,
 				attackType : ["physical","sky"],
 				upgrade : function(n){
@@ -3679,6 +3679,9 @@ var Defender = (function(){
 						return ;
 					} 
 				}
+				town.initConsole();
+				town.isTransfer = "none" ;
+				town.transfer.console.soldier = undefined ;
 				common.setMouseEnterNone();
 				town.showPage = "none" ;
 			} else {
