@@ -3438,7 +3438,6 @@ var Defender = (function(){
 			town.initConsole();
 			town.isTransfer = "none" ;
 			town.transfer.console.soldier = undefined ;
-			town.showPage = "none";
 		},
 		detectMouseEnterOver : function(temp,offsetX,offsetY,ratio){
 			if ( town.showPage === "map"  ){
