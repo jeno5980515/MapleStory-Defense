@@ -3681,6 +3681,7 @@ var Defender = (function(){
 					} 
 				}
 				common.setMouseEnterNone();
+				town.showPage = "none" ;
 			} else {
 				if ( common.isMouseEnterRange(temp,town.box,offsetX,offsetY,ratio) ){
 					town.setMouseEnterBoxClick() ;
