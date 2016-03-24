@@ -1993,8 +1993,7 @@ var Defender = (function(){
 		},
 		initMySoldierList : function(){
 			for ( var i = 0 ; i < 8 ; i ++ ){
-				mySoldierList.push(common.clone(soldierMap['rogue']));
-				mySoldierList[i].point = 1 ;
+				mySoldierList.push(common.clone(soldierMap['beginner']));
 			}
 		},
 		init: function(){
@@ -2979,7 +2978,7 @@ var Defender = (function(){
 				stage.addMonsterTimer = 0 ;
 				stage.monsterAllList = [] ;
 				for ( var i = 0 ; i < 10 ; i ++ ){
-					stage.monsterAllList.push(common.clone(monsterMap['orange-mushroom']));
+					stage.monsterAllList.push(common.clone(monsterMap['snail']));
 				}
 			},
 			init : function(){
