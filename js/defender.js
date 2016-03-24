@@ -9,8 +9,9 @@ var Defender = (function(){
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
 	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart","info","info_back","info_card","info_close","fullscreen","tick",
+	"orange-mushroom_move","orange-mushroom_hit","orange-mushroom_die",
 	"bg_town_back0","bg_town_back1","bg_town_back2","bg_town_back3","bg_town_back4","bg_town_back5","bg_town_back6","bg_town_back7",
-	"box","battle","status","choose_soldier_back2","choose_soldier2","skill","up","upgrade","skill_back","item","equip","console","up","down",
+	"box","battle","status","choose_soldier_back2","choose_soldier2","skill","up","upgrade","skill_back","item","equip","console","up","down","name","end_chat","chat","mission","chat_back","choose_transfer4","transfer",
 	"tag0","tag1","tag2","map_0",
 	"money","item_0","item_1",
 	"archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
@@ -30,9 +31,9 @@ var Defender = (function(){
 	var mouseOver = 'none' ;
 	var nowChooseSoldier ;
 	var roleList = ['beginner','archer','magician','rogue',"swordman"] ;
-	var monsterIdList = ['snail','bat',"ironhog"];
+	var monsterIdList = ['snail','bat',"ironhog","orange-mushroom"];
 	var roleDescriptionList = ['beginner','archer','magician','rogue',"swordman"] ;
-	var monsterDescriptionList = ['snail','bat',"ironhog"] ;
+	var monsterDescriptionList = ['snail','bat',"ironhog","orange-mushroom"] ;
 	var soldierMap = {} ; 
 	var monsterMap = {} ;
 	var itemMap = {} ;
@@ -42,7 +43,7 @@ var Defender = (function(){
 	var mySoldierList = [] ;
 	var invokeList = [] ;
 	var fullscreen = {} ;
-	var doneStage = 0 ;
+	var doneStage = 1 ;
 	var money = 0 ;
 	var itemList = [] ;
 	var tempItemList = [] ;
@@ -146,9 +147,14 @@ var Defender = (function(){
 					ratio = obj.ratio ;
 				if ( obj.nowFrame === undefined )
 					gameCtx.drawImage(obj.canvas,obj.x,obj.y,obj.w*ratio,obj.h*ratio);
-				else 
+				else if ( obj.canvas !== undefined )
 					gameCtx.drawImage(obj.canvas,obj.nowFrame*obj.w,0,obj.w,obj.h,obj.x,obj.y,obj.w*ratio,obj.h*ratio);
 			} else {
+				if ( obj.font !== undefined )
+					gameCtx.font= obj.font ;
+				if ( obj.fillStyle !== undefined ){
+					gameCtx.fillStyle = obj.fillStyle ;
+				}
 				gameCtx.fillText(obj.text,obj.x,obj.y);
 			}
 		},
@@ -300,12 +306,13 @@ var Defender = (function(){
 
 			var beginner = common.createSoldier({
 				name : "Beginner" ,
+				description : "The soldier is a newbie without anything." ,
 				id : 0,
 				atk : 15,
 				speed: 60,
 				range: 150,
 				level: 1,
-				transferLevel: 10,
+				transferLevel: 2,
 				hitFrame: 3,
 				standFrame: 5,
 				attackFrame: 3,
@@ -315,7 +322,10 @@ var Defender = (function(){
 				attackAnimationFrame: 1,
 				attackAnimationBeginFrame:2,
 				attackOffsetX : -3 ,
-				attackType : ["physical"]
+				attackType : ["physical"],
+				upgrade : function(n){
+					this.atk += n* 2 ;
+				}
 			}) ;
 			soldierMap['beginner'] = beginner ;
 
@@ -460,13 +470,14 @@ var Defender = (function(){
 			}) ;
 
 			var archer = common.createSoldier({
+				description : "The soldier deals damage widely and fast. Have critical attacks and deal extra damage to sky monster." ,
 				name : "Archer" ,
 				id : 1,
 				atk : 30,
 				speed: 40,
 				range: 200,
 				level: 1,
-				transferLevel: 10,
+				transferLevel: 15,
 				hitFrame: 2,
 				standFrame: 5,
 				attackFrame: 3,
@@ -480,7 +491,10 @@ var Defender = (function(){
 				hitDx : 5 ,
 				hitDy : 45 ,
 				skill : [doubleArrow,criticalArrow] ,
-				attackType : ["sky","physical"]
+				attackType : ["physical","sky"],
+				upgrade : function(n){
+					this.atk += n* 2 ;
+				}
 			}) ;
 			soldierMap['archer'] = archer ;
 			
@@ -690,12 +704,13 @@ var Defender = (function(){
 
 			var magician = common.createSoldier({
 				name : "Magician" ,
+				description : "The soldier deals magic damage widely, powerfully but slowly. Have the skill to deal damage to groups."  ,
 				id : 2,
 				atk : 60,
 				speed: 100,
 				range: 300,
 				level: 1,
-				transferLevel: 10,
+				transferLevel: 15,
 				hitFrame: 3,
 				effectTotalFrame : 4 ,
 				standFrame: 5,
@@ -712,7 +727,10 @@ var Defender = (function(){
 				hitDy : 20 ,
 				attackEffectDelay : 1 ,
 				skill : [magicBomb,magicClaw],
-				attackType : ["magic"]
+				attackType : ["magic"],
+				upgrade : function(n){
+					this.atk += n* 2 ;
+				}
 			}) ;
 
 			soldierMap['magician'] = magician ;
@@ -921,12 +939,13 @@ var Defender = (function(){
 
 			var rogue = common.createSoldier({
 				name : "Rogue" ,
+				description : "The soldier deals damage fast but narrowly. Have the skill to decrease the defense of a monster." ,
 				id : 3,
 				atk : 50,
 				speed: 30,
 				range: 100,
 				level: 1,
-				transferLevel: 10,
+				transferLevel: 15,
 				hitFrame: 3,
 				standFrame: 5,
 				attackFrame: 3,
@@ -940,7 +959,10 @@ var Defender = (function(){
 				attackOffsetX : -20 ,
 				attackOffsetY : 7 ,
 				skill : [disorder,doubleStab],
-				attackType : ["physical"]
+				attackType : ["physical"],
+				upgrade : function(n){
+					this.atk += n* 2 ;
+				}
 			}) ;
 			soldierMap['rogue'] = rogue ;
 
@@ -1141,12 +1163,13 @@ var Defender = (function(){
 
 			var swordman = common.createSoldier({
 				name : "Swordman" ,
+				description : "The soldier deals damage widely, powerfully but slowly. Have the skill to deal damage to groups."  ,
 				id : 4,
 				atk : 60,
 				speed: 150,
 				range: 200,
 				level: 1,
-				transferLevel: 10,
+				transferLevel: 15,
 				hitFrame: 3,
 				standFrame: 5,
 				attackFrame: 3,
@@ -1160,7 +1183,10 @@ var Defender = (function(){
 				attackOffsetX : -48 ,
 				attackOffsetY : -7 ,
 				skill : [slashBlast,powerStrike],
-				attackType : ["physical"]
+				attackType : ["physical"],
+				upgrade : function(n){
+					this.atk += n* 2 ;
+				}
 			}) ;
 			soldierMap['swordman'] = swordman ;
 
@@ -1174,9 +1200,9 @@ var Defender = (function(){
 				moveFrame: 9,
 				hitFrame: 1,
 				dieFrame: 9,
-				offsetX : 20 ,
-				offsetY : -3 ,
-				money : 100 ,
+				offsetX : 0 ,
+				offsetY : 9 ,
+				money : 10 ,
 				item : [{name:"sword",probability:0.3},{name:"sapphireStaff",probability:0.2}] 
 			});
 			monsterMap['snail'] = snail ;
@@ -1190,8 +1216,8 @@ var Defender = (function(){
 				hitFrame: 1,
 				dieFrame: 4,
 				dieDx : 25 ,
-				offsetY : -25 ,
-				offsetX : 10 ,
+				offsetY : -5 ,
+				offsetX : 0 ,
 				attribute:[{
 					name : "sky" ,
 					ratio : 1.3 
@@ -1207,8 +1233,7 @@ var Defender = (function(){
 				moveFrame: 3,
 				hitFrame: 1,
 				dieFrame: 2,
-				offsetY : -33 ,
-				hpDx : 15 ,
+				offsetY : -5 ,
 				attribute:[{
 					name : "physical" ,
 					ratio : 0.5
@@ -1218,6 +1243,23 @@ var Defender = (function(){
 				}]
 			});
 			monsterMap['ironhog'] = ironhog ;
+
+			var orangeMushroom = common.createMonster({
+				id: 3,
+				maxHp: 300,
+				def: 5,
+				speed: 1.5,
+				moveFrame: 3,
+				hitFrame: 1,
+				dieFrame: 3,
+				offsetX : 0 ,
+				offsetY : -10 ,
+				hitDy : 25 ,
+				money : 25 ,
+				item : [{name:"sword",probability:0.3},{name:"sapphireStaff",probability:0.2}] 
+			});
+			monsterMap['orange-mushroom'] = orangeMushroom ;
+
 		},
 		createMonsterSkill : function(){
 
@@ -1244,6 +1286,7 @@ var Defender = (function(){
 				hpDx : data.hpDx || 0 ,
 				hpDy : data.hpDy || 0 ,
 				item : data.item || [] ,
+				hitDy : data.hitDy || 0 ,
 				isFall : false ,
 				move : {
 					nowFrame : 0 ,
@@ -1269,11 +1312,13 @@ var Defender = (function(){
 					var dx = 0 ;
 					var dy = 0 ;
 					if ( c === false ){
+						var w = canvasMap["number_damage_0"].width ; 
+						var h = canvasMap["number_damage_0"].height ;
 						for ( var i = 0 ; i < d.length ; i ++ ){
 							common.createAnimation({
 								canvas : canvasMap["number_damage_"+d[i]] ,
-								x : this.x + dx + this.offsetX +this.hpDx,
-								y : this.y + dy - 30 + this.offsetY+this.hpDy,
+								x : this.x + dx - w*d.length / 2  + this.speed*15  , 
+								y : this.y + dy - h + this.offsetY,
 								dy : -1 ,
 								dx : 0 , 
 								nowFrame : 0 ,
@@ -1287,11 +1332,13 @@ var Defender = (function(){
 							dy /= 4 ;
 							dy = (1 - dy) * 4  ;
 						}
-					} else {							
+					} else {				
+						var w = canvasMap["number_damage2_0"].width ; 
+						var h = canvasMap["number_damage2_0"].height ;
 						common.createAnimation({
 							canvas : canvasMap["number_damage2_10"] ,
-							x : this.x + dx - 15 + this.offsetX+this.hpDx,
-							y : this.y + dy - 45 + this.offsetY+this.hpDy,
+							x : this.x + dx - w*d.length / 2  + this.speed * 15,
+							y : this.y + dy - h + this.offsetY,
 							dy : -1 ,
 							dx : 0 , 
 							nowFrame : 0 ,
@@ -1304,8 +1351,8 @@ var Defender = (function(){
 						for ( var i = 0 ; i < d.length ; i ++ ){
 							common.createAnimation({
 								canvas : canvasMap["number_damage2_"+d[i]] ,
-								x : this.x + dx - 15 + this.offsetX+this.hpDx ,
-								y : this.y + dy - 45 + this.offsetY+this.hpDy,
+								x : this.x + dx - w*d.length / 2 + this.speed*15,
+								y : this.y + dy - h + this.offsetY,
 								dy : -1 ,
 								dx : 0 , 
 								nowFrame : 0 ,
@@ -1325,12 +1372,13 @@ var Defender = (function(){
 				isDie : function(){
 					if ( this.isFall === false ){
 						var di = 0 ;
+						var tempAnimation = [] ;
 						for ( var i = 0 ; i < this.item.length ; i ++ ){
 							var r = Math.random();
 							if ( r < this.item[i].probability ){
 								var item = common.clone(itemMap[this.item[i].name]) ;
 								tempItemList.push(item);
-								common.createAnimation({
+								tempAnimation.push({
 									canvas : item.canvas ,
 									x : this.x + di + 20,
 									y : this.y - 10 ,
@@ -1349,7 +1397,7 @@ var Defender = (function(){
 						}
 						var r = Math.random();
 						if ( r <= 0.5 ){
-							common.createAnimation({
+							tempAnimation.push({
 								canvas : canvasMap["money"] ,
 								x : this.x + di + 20 ,
 								y : this.y - 8 ,
@@ -1364,6 +1412,10 @@ var Defender = (function(){
 								degree : 45 
 							});
 							tempMoney += this.money ;
+						}
+						for ( var i = 0 ; i < tempAnimation.length ; i ++ ){
+							tempAnimation[i].x -= tempAnimation.length * 50 / 2  ;
+							common.createAnimation(tempAnimation[i]);
 						}
 					}
 					this.isFall = true ;
@@ -1387,7 +1439,7 @@ var Defender = (function(){
 					var w = this[state].w ;
 					var h = this[state].h ;
 					var offsetX = this[state].offsetX || 0 , offsetY = this[state].offsetY || 0 ;
-					gameCtx.drawImage(canvas,w*nowFrame,0,w,h,this.x+this.offsetX+offsetX,this.y+this.offsetY+offsetY,w,h);
+					gameCtx.drawImage(canvas,w*nowFrame,0,w,h,this.x-w/2,this.y+this.offsetY-h/2,w,h);
 					if ( this[state].timer < this[state].delay  ){
 						this[state].timer ++ ;
 					} else if ( this[state].timer >= this[state].delay  ){
@@ -1405,8 +1457,11 @@ var Defender = (function(){
 					
 				},
 				showHp : function(){
-					gameCtx.drawImage(canvasMap["hp_bar"],this.x-5+this.offsetX+this.hpDx,this.y-25+this.offsetY+this.hpDy);
-					gameCtx.drawImage(canvasMap["hp"],this.x-2+this.offsetX+this.hpDx,this.y-22.5+this.offsetY+this.hpDy,canvasMap["hp"].width*(this.nowHp/this.maxHp)*46,canvasMap["hp"].height+0.5);
+					var state = this.state ;
+					var w = this["move"].w ;
+					var h = this["move"].h ;
+					gameCtx.drawImage(canvasMap["hp_bar"],this.x-canvasMap["hp_bar"].width/2,this.y-25+this.offsetY-h/2);
+					gameCtx.drawImage(canvasMap["hp"],this.x-canvasMap["hp_bar"].width/2+3,this.y-22.5+this.offsetY-h/2,canvasMap["hp"].width*(this.nowHp/this.maxHp)*46,canvasMap["hp"].height+0.5);
 					//gameCtx.fillText(this.nowHp+ '/' + this.maxHp ,this.x,this.y-10) ;
 				},
 				calculateDamage : function(result){
@@ -1472,12 +1527,11 @@ var Defender = (function(){
 						damage = 0 ;
 					}
 					this.nowHp -= damage ;
-					
 					if ( canvasMap[type+"_hit"] !== undefined ){
 						common.createAnimation({
 							canvas : canvasMap[type+"_hit"] || data.canvas,
-							x : this.x + dx + this.offsetX +this.hpDx,
-							y : this.y  - 45 + dy + this.offsetY+this.hpDy ,
+							x : this.x - canvasMap[type+"_hit"].width / data.totalFrame/2 + this.speed * 10, 
+							y : this.y + this.offsetY - this["move"].h/2 + this.hitDy + dy - canvasMap[type+"_hit"].height/2 ,
 							nowFrame : 0 ,
 							delay : data.delay || 5 ,
 							timer : 0 ,
@@ -1508,7 +1562,9 @@ var Defender = (function(){
 						h : h ,
 						canvas : canvas ,
 						delay : 10 ,
-						timer : 0 
+						timer : 0 ,
+						offsetX : this.offsetX || 0 ,
+						offsetY : this.offsetY || 0
 					}
 					var w = canvasMap[monsterIdList[this.id]+"_hit"].width ;
 					var h = canvasMap[monsterIdList[this.id]+"_hit"].height ;
@@ -1520,7 +1576,9 @@ var Defender = (function(){
 						h : h ,
 						canvas : canvas ,
 						delay : 10 ,
-						timer : 0 
+						timer : 0 ,
+						offsetX : this.offsetX || 0 ,
+						offsetY : this.offsetY || 0
 					}
 
 					var w = canvasMap[monsterIdList[this.id]+"_die"].width ;
@@ -1571,6 +1629,7 @@ var Defender = (function(){
 		},
 		createSoldier : function(data){
 			var soldier = {
+				description : data.description || "" ,
 				name : data.name || "" ,
 				state : "stand" ,
 				stand : {
@@ -1616,6 +1675,7 @@ var Defender = (function(){
 				attackEffectVy : data.attackEffectVy || 0 ,
 				attackEffectDelay : data.attackEffectDelay || 10 ,
 				equipment : {} ,
+				upgrade : data.upgrade ,
 				init : function(){
 					this.setStateCanvas();
 					return this ;
@@ -1932,11 +1992,9 @@ var Defender = (function(){
 			}
 		},
 		initMySoldierList : function(){
-			mySoldierList.push(common.clone(soldierMap['beginner']));
-			mySoldierList.push(common.clone(soldierMap['archer']));
-			mySoldierList.push(common.clone(soldierMap['magician']));
-			mySoldierList.push(common.clone(soldierMap['rogue']));
-			mySoldierList.push(common.clone(soldierMap['swordman']));
+			for ( var i = 0 ; i < 8 ; i ++ ){
+				mySoldierList.push(common.clone(soldierMap['beginner']));
+			}
 		},
 		init: function(){
 			SlEEPBAG.canvasAutoResizer.load(function(self){
@@ -2284,10 +2342,10 @@ var Defender = (function(){
 			var info = common.getSizeInfo(e) ;
 			preStage.detectMouseEnterClick(info.temp,info.offsetX,info.offsetY,info.ratio);
 		},
-		showInvoke :function(){
+		showInvoke :function(stage){
 			for ( var i = 0 ; i < invokeList.length ; i ++ ){
 				if ( invokeList[i].soldier.id === -1 ){
-					gameCtx.drawImage(canvasMap['bg_'+nowStage+"_stand"],invokeList[i].x+24,invokeList[i].y+57+54);
+					gameCtx.drawImage(canvasMap['bg_'+stage+"_stand"],invokeList[i].x+24,invokeList[i].y+57+54);
 					var w = canvasMap['invoke'].width / invokeAnimationTotalFrame ;
 					var h = canvasMap['invoke'].height ;
 					if ( preStage.isGameStart === false )
@@ -2296,7 +2354,7 @@ var Defender = (function(){
 					//gameCtx.drawImage(canvasMap['invoke'],invokeAnimationNowFrame*w,0,w,h,invokeList[i].x-24,invokeList[i].y-54,w,h);
 
 				} else {
-					gameCtx.drawImage(canvasMap['bg_'+nowStage+"_stand"],invokeList[i].x,invokeList[i].y+57);
+					gameCtx.drawImage(canvasMap['bg_'+stage+"_stand"],invokeList[i].x,invokeList[i].y+57);
 					var state = invokeList[i].soldier.state ;
 					var nowFrame = invokeList[i].soldier[state].nowFrame ; 
 					var canvas = invokeList[i].soldier[state].canvas ;
@@ -2318,20 +2376,19 @@ var Defender = (function(){
 				}
 			}
 		},
-		showBackground : function(){
-			gameCtx.drawImage(canvasMap['background'],background.x,background.y);
+		showBackground : function(stage){
 			for ( var i = 0 ; i < 3 ; i ++ ){
-				gameCtx.drawImage(canvasMap['bg_'+nowStage+"_back_top"],i*canvasMap['bg_'+nowStage+"_back_top"].width,-130);
+				gameCtx.drawImage(canvasMap['bg_'+stage+"_back_top"],i*canvasMap['bg_'+stage+"_back_top"].width,-130);
 			} 
 			for ( var i = 0 ; i < 2 ; i ++ ){
-				gameCtx.drawImage(canvasMap['bg_'+nowStage+"_back_bottom"],i*canvasMap['bg_'+nowStage+"_back_bottom"].width,100);
-				gameCtx.drawImage(canvasMap['bg_'+nowStage+"_back_bottom"],i*canvasMap['bg_'+nowStage+"_back_bottom"].width-canvasMap['bg_'+nowStage+"_back_bottom"].width/2,200);
+				gameCtx.drawImage(canvasMap['bg_'+stage+"_back_bottom"],i*canvasMap['bg_'+stage+"_back_bottom"].width,100);
+				gameCtx.drawImage(canvasMap['bg_'+stage+"_back_bottom"],i*canvasMap['bg_'+stage+"_back_bottom"].width-canvasMap['bg_'+stage+"_back_bottom"].width/2,200);
 			} 
-			gameCtx.drawImage(canvasMap['bg_'+nowStage+"_front"],0,-115);
+			gameCtx.drawImage(canvasMap['bg_'+stage+"_front"],0,-115);
 			for ( var i = 0 ; i < 5 ; i ++ ){
-				gameCtx.drawImage(canvasMap['bg_'+nowStage+"_path_top"],i*canvasMap['bg_'+nowStage+"_path_top"].width,380);
-				gameCtx.drawImage(canvasMap['bg_'+nowStage+"_path_mid"],i*canvasMap['bg_'+nowStage+"_path_mid"].width,canvasMap['bg_'+nowStage+"_path_top"].height+380);
-				gameCtx.drawImage(canvasMap['bg_'+nowStage+"_path_bottom"],i*canvasMap['bg_'+nowStage+"_path_bottom"].width,canvasMap['bg_'+nowStage+"_path_top"].height+canvasMap['bg_'+nowStage+"_path_mid"].height+380);
+				gameCtx.drawImage(canvasMap['bg_'+stage+"_path_top"],i*canvasMap['bg_'+stage+"_path_top"].width,380);
+				gameCtx.drawImage(canvasMap['bg_'+stage+"_path_mid"],i*canvasMap['bg_'+stage+"_path_mid"].width,canvasMap['bg_'+stage+"_path_top"].height+380);
+				gameCtx.drawImage(canvasMap['bg_'+stage+"_path_bottom"],i*canvasMap['bg_'+stage+"_path_bottom"].width,canvasMap['bg_'+stage+"_path_top"].height+canvasMap['bg_'+stage+"_path_mid"].height+380);
 			}
 		},
 		showButton : function(){
@@ -2345,10 +2402,15 @@ var Defender = (function(){
 				if ( preStage.isGameStart === true )
 					gameCtx.drawImage(canvasMap['restart'],preStage.restartButton.x,preStage.restartButton.y);
 				gameCtx.drawImage(canvasMap['quit'],preStage.quitButton.x,preStage.quitButton.y);
-				itemList = itemList.concat(tempItemList);
-				tempItemList = [] ;
-				money += tempMoney ;
-				tempMoney = 0 ;
+				if ( preStage.isGameWin === true ){
+					if ( parseInt(nowStage.substring(5)) > doneStage ){
+						doneStage = parseInt(nowStage.substring(5)) ;
+					}
+					itemList = itemList.concat(tempItemList);
+					tempItemList = [] ;
+					money += tempMoney ;
+					tempMoney = 0 ;
+				}
 			}
 			if ( preStage.isGameStart === false ){
 				gameCtx.drawImage(canvasMap['info'],preStage.infoButton.nowFrame*preStage.infoButton.w,0,preStage.infoButton.w,preStage.infoButton.h,preStage.infoButton.x,preStage.infoButton.y,preStage.infoButton.w,preStage.infoButton.h);
@@ -2357,10 +2419,12 @@ var Defender = (function(){
 		},
 		showAll : function(){
 			common.setMouseEvent(preStage.mouseOver,preStage.mouseClick);
-			preStage.showBackground();
+			var s = parseInt(nowStage.substring(5)) ;
+			s = parseInt((s - 1)/ 5) + 1 ;
+			preStage.showBackground("stage"+s);
 			preStage.showDescription();
 			preStage.showButton();
-			preStage.showInvoke();
+			preStage.showInvoke("stage"+s);
 			if ( preStage.isShowChooseSoldier === true )
 				preStage.pickSoldier.showAll() ;
 			else if ( preStage.isShowInfo === true ){
@@ -2578,7 +2642,7 @@ var Defender = (function(){
 						if ( mouseOver === "monsterInfo" + i ){
 							gameCtx.fillText("HP : "+monsterTypeList[i].maxHp,360,460);
 							gameCtx.fillText("Speed : "+monsterTypeList[i].speed,360,510);
-							gameCtx.fillText("Defence : "+monsterTypeList[i].def,360,560);
+							gameCtx.fillText("Defense : "+monsterTypeList[i].def,360,560);
 							for ( var j = 0 ; j < monsterTypeList[i].attribute.length ; j ++ ){
 								var type = "increase" ;
 								var ratio = monsterTypeList[i].attribute[j].ratio ;
@@ -2601,7 +2665,7 @@ var Defender = (function(){
 				var x = preStage.monsterInfo.monsterInfoList[index].x ;
 				var y = preStage.monsterInfo.monsterInfoList[index].y ;
 				gameCtx.drawImage(canvasMap['info_card'],x,y) ;
-				gameCtx.drawImage(canvasMap[monsterIdList[monsterTypeList[index].id]+"_move"],monsterTypeList[index].move.nowFrame*monsterTypeList[index].move.w,0,monsterTypeList[index].move.w,monsterTypeList[index].move.h,x+monsterTypeList[index].offsetX+22,y+monsterTypeList[index].offsetY+80,monsterTypeList[index].move.w,monsterTypeList[index].move.h) ;
+				gameCtx.drawImage(canvasMap[monsterIdList[monsterTypeList[index].id]+"_move"],monsterTypeList[index].move.nowFrame*monsterTypeList[index].move.w,0,monsterTypeList[index].move.w,monsterTypeList[index].move.h,x+canvasMap['info_card'].width/2-monsterTypeList[index].move.w/2,y+monsterTypeList[index].offsetY+canvasMap['info_card'].height/2-monsterTypeList[index].move.h/2,monsterTypeList[index].move.w,monsterTypeList[index].move.h) ;
 				common.loopAnimation(monsterTypeList[index].move);
 			},
 			showMonsterInfoList :function(){
@@ -2665,7 +2729,7 @@ var Defender = (function(){
 		expTimer : 0 ,
 		expDelay : 10 ,
 		addMonsterTimer : 0 ,
-		addMonsterDelay : 70 ,
+		addMonsterDelay : 100 ,
 		winTimer : 0 ,
 		winDelay : 10 ,
 		winNowFrame : 0 ,
@@ -2761,8 +2825,8 @@ var Defender = (function(){
 			} else if ( invokeList[index].soldier.level < 80 ) {
 				invokeList[index].soldier.goalExp = Math.round(1.09*invokeList[index].soldier.goalExp) ;
 			} 
-			invokeList[index].soldier.atk += 2 ;
 			invokeList[index].soldier.point ++ ;
+			invokeList[index].soldier.upgrade(1);
 			invokeList[index].soldier.refreshState();
 		},
 		showAddExp : function(){
@@ -2915,24 +2979,45 @@ var Defender = (function(){
 				stage.monsterAllList = [] ;
 				for ( var i = 0 ; i < 10 ; i ++ ){
 					stage.monsterAllList.push(common.clone(monsterMap['snail']));
-					//stage.monsterAllList.push(common.clone(monsterMap['bat']));
-					//stage.monsterAllList.push(common.clone(monsterMap['ironhog']));
 				}
-			},
-			initMonsterIdList : function(){
-
 			},
 			init : function(){
 				stage.init();
 				stage.initExp(100);
-				//stage.stage1.initMonsterList();
 			},
 			showAll : function(){
 				common.setMouseEvent(preStage.mouseOver,preStage.mouseClick);
 				stage.addMonster();
-				preStage.showBackground();
+				preStage.showBackground("stage1");
 				preStage.showDescription();
-				preStage.showInvoke();
+				preStage.showInvoke("stage1");
+				stage.showMonster();
+				stage.soldierEvent();
+				stage.detectGame();
+				stage.showLevelUp();
+				stage.showAnimation();
+				preStage.showButton();
+			}
+		},		
+		stage2 : {
+			initMonsterList : function(){
+				monsterList = [] ;
+				stage.addMonsterTimer = 0 ;
+				stage.monsterAllList = [] ;
+				for ( var i = 0 ; i < 10 ; i ++ ){
+					stage.monsterAllList.push(common.clone(monsterMap['orange-mushroom']));
+				}
+			},
+			init : function(){
+				stage.init();
+				stage.initExp(100);
+			},
+			showAll : function(){
+				common.setMouseEvent(preStage.mouseOver,preStage.mouseClick);
+				stage.addMonster();
+				preStage.showBackground("stage1");
+				preStage.showDescription();
+				preStage.showInvoke("stage1");
 				stage.showMonster();
 				stage.soldierEvent();
 				stage.detectGame();
@@ -2946,6 +3031,7 @@ var Defender = (function(){
 	var town = {
 		box : {} ,
 		battle : {} ,
+		mission : {} ,
 		map : {} ,
 		character : {} ,
 		nowTag : {} ,
@@ -2953,9 +3039,13 @@ var Defender = (function(){
 		soldierList : [] ,
 		isChooseSoldier : false ,
 		consoleContent : {} ,
+		chat : {} ,
 		item : null ,
+		isTransfer : "none" ,
+		transferChoose : {} ,
 		init : function(){
 			this.isChooseSoldier = false ;
+			this.isTransfer = "none" ;
 			this.item = null ;
 			this.soldierList = [] ;
 			this.showPage = "none" ;
@@ -2973,6 +3063,14 @@ var Defender = (function(){
 				if ( i % 4 === 3 ){
 					x = town.character.item.x + 21 , y += 70 ;
 				}
+			}
+		},
+		initTransferObject : function(){
+			this.soldierList = [] ;
+			var x = this.transfer.chooseSoldier.x , y = this.transfer.chooseSoldier.y+14 ;
+			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
+				x = i * 165 + 20  ;
+				this.soldierList.push({x:x,y:y,w:canvasMap['choose_soldier_back2'].width,h:canvasMap['choose_soldier_back2'].height,canvas:canvasMap['choose_soldier_back2']});
 			}
 		},
 		initCharacterObject : function(){
@@ -3014,6 +3112,10 @@ var Defender = (function(){
 				name : { x : 1115 , y : 285 } ,
 				content : [{ x : 1060 , y : 340 } ] 
 			};
+			town.transfer.console = { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : canvasMap["console"] ,
+				icon : { x : 1050 , y : 250 } ,
+				content : [{ x : 1060 , y : 285 } ] 
+			};
 		},
 		initObject : function(){
 			this.nowTag = 	{ x : 540 , y : 295 , w : canvasMap["tag2"].width / 4 , h : canvasMap["tag2"].height , canvas : canvasMap["tag2"] , nowFrame : 0 , totalFrame : 4 , timer : 0 , delay : 5  } ;
@@ -3024,7 +3126,8 @@ var Defender = (function(){
 					x : 1140 , y : 20 , w : canvasMap["close"].width , h : canvasMap["close"].height , canvas : canvasMap["close"]
 				} ,
 				tag : [
-					{ x : 457 , y : 229 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : canvasMap["tag1"] , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 1 }
+					{ x : 457 , y : 231 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : canvasMap["tag1"] , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 1 },
+					{ x : 470 , y : 281 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : canvasMap["tag1"] , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 2 }
 				] 
 			};
 			this.character = { 
@@ -3045,9 +3148,34 @@ var Defender = (function(){
 				}
 
 			};
-
+			this.mission = { x : 540 , y : 533 , w : canvasMap["mission"].width , h : canvasMap["mission"].height , canvas : canvasMap["mission"] } ;
+			this.transfer = {	
+				chooseSoldier : { x : 8 , y : 540 , w : canvasMap["choose_soldier2"].width , h : canvasMap["choose_soldier2"].height , canvas : canvasMap["choose_soldier2"] },
+				console : { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : canvasMap["console"] ,
+					icon : { x : 1050 , y : 250 } ,
+					name : { x : 1115 , y : 285 , font : "30px Arial" , fillStyle : "black" } ,
+					content : [{ x : 1060 , y : 340 } ] 
+				},
+				button : {x : canvasWidth/2-canvasMap['transfer'].width/2 + 10 , y : canvasHeight/2-canvasMap['transfer'].height/2 + 25, h : canvasMap['transfer'].height , w : canvasMap['transfer'].width , canvas : canvasMap['transfer'] }
+			};
+			this.chat = { x : canvasWidth/2-canvasMap['chat'].width/2 , y : canvasHeight/2-canvasMap['chat'].height/2 , w : canvasMap['chat'].width , h : canvasMap['chat'].height , canvas : canvasMap['chat'] , 
+				//transferTextTag : { x : canvasWidth/2-canvasMap['chat'].width/2 + 300 , y : canvasHeight/2-canvasMap['chat'].height/2 + 300 , w : canvasMap['text_tag'].width , h : canvasMap['text_tag'].height , canvas : canvasMap['text_tag']}  ,
+				transferTextBack : { x : canvasWidth/2-canvasMap['chat_back'].width/2 - 120  , y : canvasHeight/2-canvasMap['chat_back'].height/2 + 50 , canvas : canvasMap["chat_back"] , w : 310 , h : 50 } ,
+				transferText : { x : canvasWidth/2-canvasMap['chat'].width/2 + 300 , y : canvasHeight/2-canvasMap['chat'].height/2 + 300 , text : "I want to transfer jobs." , font : "30px Arial" , fillStyle : "blue"  }  
+			} ;
+			this.transferChoose = {
+				beginner : { x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 , y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 , w : canvasMap["choose_transfer4"].width , h : canvasMap["choose_transfer4"].height , canvas : canvasMap["choose_transfer4"] ,
+					list : [
+						{ x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 + 10 , y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 + 14, h : canvasMap['choose_soldier_back2'].height , w : canvasMap['choose_soldier_back2'].width , canvas : canvasMap['choose_soldier_back2'] , soldier : soldierMap["archer"]},
+						{ x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 + 10 + 165 , y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 + 14, h : canvasMap['choose_soldier_back2'].height , w : canvasMap['choose_soldier_back2'].width , canvas : canvasMap['choose_soldier_back2'] , soldier : soldierMap["magician"]},
+						{ x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 + 10 + 165 *2 , y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 + 14, h : canvasMap['choose_soldier_back2'].height , w : canvasMap['choose_soldier_back2'].width , canvas : canvasMap['choose_soldier_back2'] , soldier : soldierMap["rogue"]},
+						{ x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 + 10 + 165 *3, y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 + 14, h : canvasMap['choose_soldier_back2'].height , w : canvasMap['choose_soldier_back2'].width , canvas : canvasMap['choose_soldier_back2'] , soldier : soldierMap["swordman"]}
+					]
+				}
+			}
 			this.initCharacterObject();
 			this.refreshItemList();
+			this.initTransferObject();
 		},
 		showBackground : function(){
 			gameCtx.drawImage(canvasMap['bg_town_back5'],0,0);
@@ -3061,18 +3189,18 @@ var Defender = (function(){
 				gameCtx.drawImage(canvasMap["bg_town_back7"],i*canvasMap["bg_town_back7"].width,-130);
 			} 
 			for ( var i = 0 ; i < 2 ; i ++ ){
-				gameCtx.drawImage(canvasMap['bg_'+nowStage+"_back_bottom"],i*canvasMap['bg_'+nowStage+"_back_bottom"].width,100);
-				gameCtx.drawImage(canvasMap['bg_'+nowStage+"_back_bottom"],i*canvasMap['bg_'+nowStage+"_back_bottom"].width-canvasMap['bg_'+nowStage+"_back_bottom"].width/2,200);
+				gameCtx.drawImage(canvasMap["bg_stage1_back_bottom"],i*canvasMap["bg_stage1_back_bottom"].width,100);
+				gameCtx.drawImage(canvasMap["bg_stage1_back_bottom"],i*canvasMap["bg_stage1_back_bottom"].width-canvasMap["bg_stage1_back_bottom"].width/2,200);
 			} 
 			gameCtx.drawImage(canvasMap['bg_town_back3'],-200,100);
 			gameCtx.drawImage(canvasMap['bg_town_back0'],400,100);
-			gameCtx.drawImage(canvasMap['bg_'+nowStage+"_front"],0,165);
+			gameCtx.drawImage(canvasMap["bg_stage1_front"],0,165);
 			gameCtx.drawImage(canvasMap['bg_town_back4'],500,100);
 			for ( var i = 0 ; i < 5 ; i ++ ){
-				gameCtx.drawImage(canvasMap["bg_stage1_path_top"],i*canvasMap['bg_'+nowStage+"_path_top"].width,600);
-				gameCtx.drawImage(canvasMap['bg_'+nowStage+"_path_mid"],i*canvasMap['bg_'+nowStage+"_path_mid"].width,canvasMap['bg_'+nowStage+"_path_top"].height+600);
-				gameCtx.drawImage(canvasMap['bg_'+nowStage+"_path_mid"],i*canvasMap['bg_'+nowStage+"_path_mid"].width,canvasMap['bg_'+nowStage+"_path_top"].height+canvasMap['bg_'+nowStage+"_path_mid"].height+600);
-				gameCtx.drawImage(canvasMap['bg_'+nowStage+"_path_bottom"],i*canvasMap['bg_'+nowStage+"_path_bottom"].width,canvasMap['bg_'+nowStage+"_path_top"].height+canvasMap['bg_'+nowStage+"_path_mid"].height+canvasMap['bg_'+nowStage+"_path_mid"].height+600);
+				gameCtx.drawImage(canvasMap["bg_stage1_path_top"],i*canvasMap["bg_stage1_path_top"].width,600);
+				gameCtx.drawImage(canvasMap["bg_stage1_path_mid"],i*canvasMap["bg_stage1_path_mid"].width,canvasMap["bg_stage1_path_top"].height+600);
+				gameCtx.drawImage(canvasMap["bg_stage1_path_mid"],i*canvasMap["bg_stage1_path_mid"].width,canvasMap["bg_stage1_path_top"].height+canvasMap["bg_stage1_path_mid"].height+600);
+				gameCtx.drawImage(canvasMap["bg_stage1_path_bottom"],i*canvasMap["bg_stage1_path_bottom"].width,canvasMap["bg_stage1_path_top"].height+canvasMap["bg_stage1_path_mid"].height+canvasMap["bg_stage1_path_mid"].height+600);
 			}
 			gameCtx.drawImage(canvasMap['bg_town_back1'],350,500);
 			gameCtx.drawImage(canvasMap['bg_town_back0'],-100,580);
@@ -3100,6 +3228,13 @@ var Defender = (function(){
 			document.body.style.cursor = "pointer" ;
 			town.showPage = "map" ;
 		},			
+		setMouseEnterMissionOver : function(){
+			document.body.style.cursor = "pointer" ;
+		},
+		setMouseEnterMissionClick : function(){
+			document.body.style.cursor = "default" ;
+			town.showPage = "mission" ;
+		},		
 		setMouseEnterBoxOver : function(){
 			document.body.style.cursor = "pointer" ;
 		},
@@ -3111,11 +3246,42 @@ var Defender = (function(){
 			town.isChooseSoldier = true ;
 			document.body.style.cursor = "pointer" ;
 		},
+		setMouseEnterTransferChooseClick : function(i){
+			document.body.style.cursor = "default" ;
+			town.initConsole();
+			var s = town.transferChoose[town.isTransfer].list[i].soldier ;
+			town.transfer.console.soldier = s ;
+			town.transfer.console.icon = "none" ;
+			town.transfer.console.content[0].text = s.description  ;
+		},
 		setMouseEnterSoldierClick : function(i){
 			town.isChooseSoldier = true ;
-			document.body.style.cursor = "pointer" ;
 			mouseOver = "soldier" + i ;
 			town.initConsole();
+			if ( town.showPage === "character" ){	
+				town.initCharacterObject();	
+				var s = mySoldierList[i] ;
+				town.character.console.icon = "none" ;
+				town.character.console.name.x -= 50 , town.character.console.name.y += 10 ;
+				town.character.console.name.text = mySoldierList[i].name ;
+				var text = "AttackType : "  ;
+				for ( var i = 0 ; i < s.attackType.length ; i ++ ){
+					text += s.attackType[i] ;
+					if ( i !== s.attackType.length - 1 )
+						text += " , " ;
+				}
+				town.character.console.content[0].text = text ;
+				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Transfer Level : "+ mySoldierList[i].transferLevel});
+			} else if ( town.showPage === "transfer" ){
+				var s = mySoldierList[i] ;
+				town.transfer.console.icon = "none" ;
+				town.transfer.console.content[0].text = mySoldierList[i].description  ;
+				if ( mySoldierList[i].level >= mySoldierList[i].transferLevel ) {
+					town.isTransfer = mySoldierList[i].name.substr(0, 1).toLowerCase() + mySoldierList[i].name.substr(1) ;
+				} else {
+					town.isTransfer = "none" ;
+				}
+			}
 		},
 		setMouseEnterSkillOver : function(i){
 			document.body.style.cursor = "pointer" ;
@@ -3154,6 +3320,13 @@ var Defender = (function(){
 			town.character.item.nowPage += i ;
 			town.refreshItemList();
 		},
+		setMouseEnterTransferTextOver : function(){
+			document.body.style.cursor = "pointer" ;
+		},
+		setMouseEnterTransferTextClick : function(){
+			town.showPage = "transfer" ;
+			document.body.style.cursor = "default" ;
+		},
 		setMouseEnterItemOver : function(i){
 			document.body.style.cursor = "pointer" ;
 		},
@@ -3177,7 +3350,7 @@ var Defender = (function(){
 		setMouseEnterItemDblClick : function(j){
 			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
 				if ( mouseOver === "soldier" + i ){
-					if ( itemList[j].role.indexOf(i) !== -1 ){
+					if ( itemList[j].role.indexOf(mySoldierList[i].id) !== -1 ){
 						mySoldierList[i].equip(j) ;
 						town.initCharacterObject();
 					}
@@ -3238,18 +3411,50 @@ var Defender = (function(){
 			town.initCharacterObject();
 			town.setMouseEnterSkillClick(i,j);
 		},
+		setMouseEnterTransferButtonClick : function(){
+			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
+				if ( mouseOver === "soldier" + i ){
+					var level = mySoldierList[i].level ;
+					var nowExp = mySoldierList[i].nowExp ;
+					var goalExp = mySoldierList[i].goalExp ;
+					var point = mySoldierList[i].point ;
+					for ( var e in mySoldierList[i].equipment )
+						mySoldierList[i].removeEquip(e) ;
+
+					mySoldierList[i] = common.clone(town.transfer.console.soldier);
+					mySoldierList[i].level = level ;
+					mySoldierList[i].nowExp = nowExp ;
+					mySoldierList[i].goalExp = goalExp ;
+					mySoldierList[i].point = point ;
+					mySoldierList[i].upgrade(level-1);
+					break ;
+				}
+			}
+			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
+				mySoldierList[i].isPicked = false ;
+			} 
+			preStage.isInitInvoke = false ;
+			preStage.initInvoke();	
+			town.initConsole();
+			town.isTransfer = "none" ;
+			town.transfer.console.soldier = undefined ;
+			town.showPage = "none";
+		},
 		detectMouseEnterOver : function(temp,offsetX,offsetY,ratio){
 			if ( town.showPage === "map"  ){
 				for ( var i = 0 ; i < this.map.tag.length ; i ++ ){
-					if ( common.isMouseEnterRange(temp,town.map.tag[i],offsetX,offsetY,ratio) ){
-						town.setMouseEnterTagOver(town.map.tag[i]) ;
-						return ;
-					} 				
+					if ( this.map.tag[i].stage <= doneStage + 1  ){
+						if ( common.isMouseEnterRange(temp,town.map.tag[i],offsetX,offsetY,ratio) ){
+							town.setMouseEnterTagOver(town.map.tag[i]) ;
+							return ;
+						} 			
+					}	
 				}
 				if ( common.isMouseEnterRange(temp,town.map.closeButton,offsetX,offsetY,ratio) ){
 					town.setMouseEnterMapCloseOver() ;
 					return ;
 				}
+				document.body.style.cursor = "default" ;
 			} else if ( town.showPage === "character" ){
 				for ( var i = 0 ; i < town.soldierList.length ; i ++ ){
 					if ( common.isMouseEnterRange(temp,town.soldierList[i],offsetX,offsetY,ratio) ){
@@ -3308,12 +3513,43 @@ var Defender = (function(){
 					}
 				} 
 				document.body.style.cursor = "default" ;
+			} else if ( town.showPage === "mission" ){
+				if ( common.isMouseEnterRange(temp,town.chat.transferTextBack,offsetX,offsetY,ratio) ){
+					town.setMouseEnterTransferTextOver() ;
+					return ;
+				}
+				common.setMouseEnterNone();
+			} else if ( town.showPage === "transfer" ){
+				if ( town.isTransfer !== "none" ){
+					for ( var i = 0 ; i < town.transferChoose[town.isTransfer].list.length ; i ++ ){
+						if ( common.isMouseEnterRange(temp,town.transferChoose[town.isTransfer].list[i],offsetX,offsetY,ratio) ){
+							town.setMouseEnterSoldierOver(i) ;
+							return ;
+						} 
+					}
+				}
+				for ( var i = 0 ; i < town.soldierList.length ; i ++ ){
+					if ( common.isMouseEnterRange(temp,town.soldierList[i],offsetX,offsetY,ratio) ){
+						town.setMouseEnterSoldierOver(i) ;
+						return ;
+					} 
+				}
+				if ( town.transfer.console.soldier !== undefined ){
+					if ( common.isMouseEnterRange(temp,town.transfer.button,offsetX,offsetY,ratio) ){
+						town.setMouseEnterSoldierOver(i) ;
+						return ;
+					} 
+				}
+				document.body.style.cursor = "default" ;
 			} else {
 				if ( common.isMouseEnterRange(temp,town.box,offsetX,offsetY,ratio) ){
 					town.setMouseEnterBoxOver() ;
 					return ;
 				} else if ( common.isMouseEnterRange(temp,town.battle,offsetX,offsetY,ratio) ){
 					town.setMouseEnterBattleOver() ;
+					return ;
+				} else if ( common.isMouseEnterRange(temp,town.mission,offsetX,offsetY,ratio) ){
+					town.setMouseEnterMissionOver() ;
 					return ;
 				} else {
 					common.setMouseEnterNone();
@@ -3328,10 +3564,12 @@ var Defender = (function(){
 		detectMouseEnterClick : function(temp,offsetX,offsetY,ratio){
 			if ( town.showPage === "map" ){				
 				for ( var i = 0 ; i < this.map.tag.length ; i ++ ){
-					if ( common.isMouseEnterRange(temp,town.map.tag[i],offsetX,offsetY,ratio) ){
-						town.setMouseEnterTagClick(town.map.tag[i]) ;
-						return ;
-					} 				
+					if ( this.map.tag[i].stage <= doneStage + 1  ){
+						if ( common.isMouseEnterRange(temp,town.map.tag[i],offsetX,offsetY,ratio) ){
+							town.setMouseEnterTagClick(town.map.tag[i]) ;
+							return ;
+						} 	
+					}			
 				}
 				if ( common.isMouseEnterRange(temp,town.map,offsetX,offsetY,ratio) ){
 					return ;
@@ -3412,6 +3650,37 @@ var Defender = (function(){
 					return ;
 				} 
 				town.showPage = "none" ;
+			} else if ( town.showPage === "mission" ){
+				if ( common.isMouseEnterRange(temp,town.chat.transferTextBack,offsetX,offsetY,ratio) ){
+					town.setMouseEnterTransferTextClick() ;
+					return ;
+				}
+				if ( common.isMouseEnterRange(temp,town.chat,offsetX,offsetY,ratio) ){
+					return ;
+				} 
+				town.showPage = "none" ;
+			} else if ( town.showPage === "transfer" ){
+				if ( town.isTransfer !== "none" ){
+					for ( var i = 0 ; i < town.transferChoose[town.isTransfer].list.length ; i ++ ){
+						if ( common.isMouseEnterRange(temp,town.transferChoose[town.isTransfer].list[i],offsetX,offsetY,ratio) ){
+							town.setMouseEnterTransferChooseClick(i) ;
+							return ;
+						} 
+					}
+				}
+				for ( var i = 0 ; i < town.soldierList.length ; i ++ ){
+					if ( common.isMouseEnterRange(temp,town.soldierList[i],offsetX,offsetY,ratio) ){
+						town.setMouseEnterSoldierClick(i) ;
+						return ;
+					} 
+				}				
+				if ( town.transfer.console.soldier !== undefined ){
+					if ( common.isMouseEnterRange(temp,town.transfer.button,offsetX,offsetY,ratio) ){
+						town.setMouseEnterTransferButtonClick() ;
+						return ;
+					} 
+				}
+				common.setMouseEnterNone();
 			} else {
 				if ( common.isMouseEnterRange(temp,town.box,offsetX,offsetY,ratio) ){
 					town.setMouseEnterBoxClick() ;
@@ -3419,7 +3688,10 @@ var Defender = (function(){
 				} else if ( common.isMouseEnterRange(temp,town.battle,offsetX,offsetY,ratio) ){
 					town.setMouseEnterBattleClick() ;
 					return ;
-				}				
+				} else if ( common.isMouseEnterRange(temp,town.mission,offsetX,offsetY,ratio) ){
+					town.setMouseEnterMissionClick() ;
+					return ;
+				} 		
 				if ( common.isMouseEnterRange(temp,town.character.status,offsetX,offsetY,ratio) ){
 					return ;
 				} 
@@ -3468,14 +3740,17 @@ var Defender = (function(){
 		showObject : function(){
 			gameCtx.drawImage(canvasMap['box'],this.box.x,this.box.y);
 			gameCtx.drawImage(canvasMap['battle'],this.battle.x,this.battle.y);
+			gameCtx.drawImage(canvasMap['mission'],this.mission.x,this.mission.y);
 		},
 		showMap : function(){
 			gameCtx.drawImage(this.map.canvas,this.map.x,this.map.y);
 			gameCtx.drawImage(this.map.closeButton.canvas,this.map.closeButton.x,this.map.closeButton.y);
 			//tag
 			for ( var i = 0 ; i < this.map.tag.length ; i ++ ){
-				gameCtx.drawImage(this.map.tag[i].canvas,this.map.tag[i].nowFrame*this.map.tag[i].w,0,this.map.tag[i].w,this.map.tag[i].h,this.map.tag[i].x,this.map.tag[i].y,this.map.tag[i].w,this.map.tag[i].h);
-				common.loopAnimation(this.map.tag[i]);
+				if ( this.map.tag[i].stage <= doneStage + 1 ){
+					gameCtx.drawImage(this.map.tag[i].canvas,this.map.tag[i].nowFrame*this.map.tag[i].w,0,this.map.tag[i].w,this.map.tag[i].h,this.map.tag[i].x,this.map.tag[i].y,this.map.tag[i].w,this.map.tag[i].h);
+					common.loopAnimation(this.map.tag[i]);
+				}
 				if ( this.map.tag[i].stage === doneStage + 1 ){
 					this.nowTag.x = this.map.tag[i].x + this.map.tag[i].w/2 - this.nowTag.w/2;
 					this.nowTag.y = this.map.tag[i].y - this.map.tag[i].h/2 - this.nowTag.h/2 ;
@@ -3483,7 +3758,76 @@ var Defender = (function(){
 					common.loopAnimation(this.nowTag);
 				}
 			}
+		},	
+		showTransferChoose : function(type){
+			if ( type === "beginner" ){
+				common.drawObject(this.transferChoose[type]);
+				for ( var i = 0 ; i < this.transferChoose[type].list.length ; i ++ ){
+					common.drawObject(this.transferChoose[type].list[i]);
+					var s = this.transferChoose[type].list[i].soldier ;
+					var role = common.getRole(s.id) ;
+					var x = this.transferChoose[type].list[i].x + 52, y = this.transferChoose[type].list[i].y + 43 ;
+					gameCtx.drawImage(canvasMap[role+"_stand"],canvasMap[role+"_stand"].width/5*s.stand.nowFrame,0,canvasMap[role+"_stand"].width/5,canvasMap[role+"_stand"].height,x+s.standOffsetX,y+s.standOffsetY,canvasMap[role+"_stand"].width/5,canvasMap[role+"_stand"].height);
+					if ( s.stand.timer < s.stand.delay  ){
+						s.stand.timer ++ ;
+					} else if ( s.stand.timer >= s.stand.delay  ){
+						s.stand.nowFrame  ++ ;
+						s.stand.timer = 0 ;
+						if ( s.stand.nowFrame >= s.stand.totalFrame ){
+							s.stand.nowFrame = 0 ;
+						}
+					}
+					gameCtx.fillText(s.name,x,y+100);
+				}
+			} 
+			if ( town.transfer.console.soldier !== undefined ){
+				common.drawObject(town.transfer.button);
+			}
+		},
+		showTransfer : function(){
+
+			common.drawObject(this.transfer.console);
+
+			if ( this.transfer.console.icon === "none" ){
+				gameCtx.fillStyle = "black" ;
+				gameCtx.font="24px Arial";
+				var height = 34 ;
+				var y = common.wrapText(this.transfer.console.content[0],this.transfer.console.w-20,height);
+			}
+
+			common.drawObject(this.transfer.chooseSoldier);
+			gameCtx.font="12px Courier New";
+			gameCtx.fillStyle = "white" ;
+			for ( var i = 0 ; i < this.soldierList.length ; i ++ ){
+				common.drawObject(this.soldierList[i]);
+				var role = common.getRole(mySoldierList[i].id) ;
+				var x = this.soldierList[i].x + 52, y = this.soldierList[i].y + 43 ;
+				gameCtx.drawImage(canvasMap[role+"_stand"],canvasMap[role+"_stand"].width/5*mySoldierList[i].stand.nowFrame,0,canvasMap[role+"_stand"].width/5,canvasMap[role+"_stand"].height,x+mySoldierList[i].standOffsetX,y+mySoldierList[i].standOffsetY,canvasMap[role+"_stand"].width/5,canvasMap[role+"_stand"].height);
+				if ( mySoldierList[i].stand.timer < mySoldierList[i].stand.delay  ){
+					mySoldierList[i].stand.timer ++ ;
+				} else if ( mySoldierList[i].stand.timer >= mySoldierList[i].stand.delay  ){
+					mySoldierList[i].stand.nowFrame  ++ ;
+					mySoldierList[i].stand.timer = 0 ;
+					if ( mySoldierList[i].stand.nowFrame >= mySoldierList[i].stand.totalFrame ){
+						mySoldierList[i].stand.nowFrame = 0 ;
+					}
+				}
+				gameCtx.fillText(mySoldierList[i].name,x,y+100);
+				if ( mySoldierList[i].level >= mySoldierList[i].transferLevel ) {
+					gameCtx.drawImage(canvasMap["tick"],this.soldierList[i].x+10,this.soldierList[i].y+10);
+				}
+			}
+			if ( this.isTransfer === "beginner" ){
+				this.showTransferChoose("beginner") ;
+			}
 		},		
+		showMission : function(){
+			common.drawObject(this.chat);
+			//common.drawObject(this.chat.transferTextTag);
+			common.drawObject(this.chat.transferTextBack);
+			common.drawObject(this.chat.transferText);
+
+		},	
 		showCharacter : function(){
 
 			gameCtx.fillStyle = "black" ;
@@ -3516,6 +3860,19 @@ var Defender = (function(){
 			common.drawObject(this.character.console);
 			if ( this.character.console.icon.canvas !== undefined && this.character.console.icon.canvas !== null ){
 				common.drawObject(this.character.console.icon);
+				common.drawObject(this.character.console.name);
+				gameCtx.font="24px Arial";
+				var height = 34 ;
+				var y = common.wrapText(this.character.console.content[0],this.character.console.w-20,height);
+				for ( var i = 1 ; i < this.character.console.content.length ; i ++ ){
+					if ( i === 1 )
+						this.character.console.content[i].y = y + height ;
+					else 
+						this.character.console.content[i].y = this.character.console.content[i-1].y + height ;
+
+					common.drawObject(this.character.console.content[i]);
+				}
+			} else if ( this.character.console.icon === "none" ){
 				common.drawObject(this.character.console.name);
 				gameCtx.font="24px Arial";
 				var height = 34 ;
@@ -3594,7 +3951,11 @@ var Defender = (function(){
 				this.showMap();
 			} else if ( town.showPage === "character" ){
 				this.showCharacter();
-			} 
+			} else if ( town.showPage === "mission" ){
+				this.showMission();
+			} else if ( town.showPage === "transfer" ){
+				this.showTransfer();
+			}
 		}
 	}
 
