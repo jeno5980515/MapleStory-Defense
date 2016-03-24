@@ -1483,8 +1483,8 @@ var Defender = (function(){
 						} else {							
 							state[i].canvas = {
 								canvas : canvasMap[type+"_hit_effect"] ,
-								x : data.hitEffectDx +this.offsetX + this.hpDx ,
-								y : - 45 + data.hitEffectDy+this.offsetY+this.hpDy ,
+								x : data.hitEffectDx -  canvasMap[type+"_hit_effect"].width / data.totalFrame/2 + this.hpDx ,
+								y : data.hitEffectDy+this.offsetY - this["move"].h/2 - canvasMap[type+"_hit_effect"].height/2,
 								nowFrame : 0 ,
 								delay : data.hitEffectDelay || 5 ,
 								timer : 0 ,
@@ -1993,7 +1993,8 @@ var Defender = (function(){
 		},
 		initMySoldierList : function(){
 			for ( var i = 0 ; i < 8 ; i ++ ){
-				mySoldierList.push(common.clone(soldierMap['beginner']));
+				mySoldierList.push(common.clone(soldierMap['rogue']));
+				mySoldierList[i].point = 1 ;
 			}
 		},
 		init: function(){
@@ -2978,7 +2979,7 @@ var Defender = (function(){
 				stage.addMonsterTimer = 0 ;
 				stage.monsterAllList = [] ;
 				for ( var i = 0 ; i < 10 ; i ++ ){
-					stage.monsterAllList.push(common.clone(monsterMap['snail']));
+					stage.monsterAllList.push(common.clone(monsterMap['orange-mushroom']));
 				}
 			},
 			init : function(){
