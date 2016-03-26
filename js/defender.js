@@ -1475,7 +1475,7 @@ var Defender = (function(){
 				offsetX : 0 ,
 				offsetY : 9 ,
 				money : 10 ,
-				item : [{name:"sword",probability:0.1},{name:"sapphireStaff",probability:0.05},{name:"scimitar",probability:0.5},{name:"singleEarring",probability:0.5}] 
+				item : [{name:"sword",probability:0.1},{name:"sapphireStaff",probability:0.05},{name:"scimitar",probability:0.05},{name:"singleEarring",probability:0.05}] 
 			});
 			monsterMap['snail'] = snail ;
 
