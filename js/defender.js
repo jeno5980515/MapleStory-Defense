@@ -8,8 +8,8 @@ var Defender = (function(){
 	var IE = "ActiveXObject" in window ;
 	var gameCanvas , gameCtx ;
 	var defenderList = [] ;
-	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart","info","info_back","info_card","info_close","fullscreen","tick",
-	"orange-mushroom_move","orange-mushroom_hit","orange-mushroom_die",
+	var imageList = ["background","beginner_stand","atkUp","snail_move","invoke","choose_soldier","choose_soldier_back","description","close","reset","confirm","beginner_hit","beginner_attack","beginner_attack_effect","snail_hit","number_damage","snail_die","hp","hp_bar","bg_stage1_path_top","bg_stage1_path_mid","bg_stage1_path_bottom","bg_stage1_front","bg_stage1_back_bottom","bg_stage1_back_top","bg_stage1_stand","number_damage2","create","exp_bar","exp","levelup","clear","fail","start","quit","restart","info","info_back","info_card","info_close","fullscreen","tick","login","new","load","login_board",
+	"orange-mushroom_move","orange-mushroom_hit","orange-mushroom_die","shroom_move","shroom_hit","shroom_die",
 	"bg_town_back0","bg_town_back1","bg_town_back2","bg_town_back3","bg_town_back4","bg_town_back5","bg_town_back6","bg_town_back7",
 	"box","battle","status","choose_soldier_back2","choose_soldier2","skill","up","upgrade","skill_back","item","equip","console","up","down","name","end_chat","chat","mission","chat_back","choose_transfer4","transfer",
 	"tag0","tag1","tag2","map_0",
@@ -31,9 +31,10 @@ var Defender = (function(){
 	var mouseOver = 'none' ;
 	var nowChooseSoldier ;
 	var roleList = ['beginner','archer','magician','rogue',"swordman"] ;
-	var monsterIdList = ['snail','bat',"ironhog","orange-mushroom"];
+	var monsterIdList = ['snail','bat',"ironhog","orange-mushroom","shroom"];
 	var roleDescriptionList = ['beginner','archer','magician','rogue',"swordman"] ;
 	var monsterDescriptionList = ['snail','bat',"ironhog","orange-mushroom"] ;
+	var itemIdList = ["sword","sapphireStaff"] ;
 	var soldierMap = {} ; 
 	var monsterMap = {} ;
 	var itemMap = {} ;
@@ -49,6 +50,122 @@ var Defender = (function(){
 	var tempItemList = [] ;
 	var tempMoney = 0 ;
 	var invokeAnimationTimer = 0 , invokeAnimationDelay = 5 , invokeAnimationNowFrame = 0 , invokeAnimationTotalFrame = 8 ;
+
+	var login = {
+		background : {} ,
+		board : {} ,
+		newButton : {} ,
+		loadButton : {} ,
+		init : function(){
+			this.initObject();
+		},
+		initObject : function(){
+			this.background = { x : -50 , y : -150 , w : canvasMap["login"].width * 1.8, h : canvasMap["login"].height * 1.8, canvas : "login" } ;
+			this.board = { x : 490 , y : 440 , w : canvasMap["login_board"].width , h : canvasMap["login_board"].height , canvas : "login_board" } ;
+			this.newButton = { x : 587 , y : 510 , w : canvasMap["new"].width , h : canvasMap["new"].height , canvas : "new" } ;
+			this.loadButton = { x : 587 , y : 600 , w : canvasMap["load"].width , h : canvasMap["load"].height , canvas : "load" } ;
+		},
+		showBackground : function(){
+			common.drawObject(this.background);
+			common.drawObject(this.board);
+			common.drawObject(this.newButton);
+			if ( localStorage.getItem("item") !== null )
+				common.drawObject(this.loadButton);
+		},
+		showAll : function(){
+			common.setMouseEvent(login.mouseOver,login.mouseClick);
+			this.showBackground();
+		},
+		setMouseEnterNewButtonOver : function(){
+			document.body.style.cursor = "pointer" ;
+		},
+		setMouseEnterNewButtonClick : function(){
+			document.body.style.cursor = "default" ;
+			nowPage = "town";
+			town.init();
+			preStage.initInvoke();
+		},
+		setMouseEnterLoadButtonClick : function(){
+			document.body.style.cursor = "default" ;
+			nowPage = "town";
+			town.init();
+			preStage.initInvoke();
+
+			var item = JSON.parse(localStorage.getItem("item")) ;
+			itemList = [] ;
+			for ( var i = 0 ; i < item.length ; i ++ ){
+				itemList.push(common.clone(itemMap[itemIdList[item[i].id]]));
+			}
+			var soldier = JSON.parse(localStorage.getItem("soldier")) ;
+			mySoldierList = [] ;
+			for ( var i = 0 ; i < soldier.length ; i ++ ){
+				mySoldierList.push(common.clone(soldierMap[roleList[soldier[i].id]]));
+				for ( var j = 0 ; j < soldier[i].level-1 ; j ++ ){
+					mySoldierList[i].upgrade(1) ;
+				}
+				mySoldierList[i].nowExp = soldier[i].exp ;
+				mySoldierList[i].point = soldier[i].point ;
+				for ( var j = 0 ; j < soldier[i].skill.length ; j ++ ){
+					for ( k = 0 ; k < soldier[i].skill[j].level ; k ++ ){
+						mySoldierList[i].skill[j].upgrade() ;
+					}
+				} 
+				for ( var e in soldier[i].equip ){
+					mySoldierList[i].equipment[e] = common.clone(itemMap[itemIdList[soldier[i].equip[e].id]]);
+				}
+			}
+			doneStage = JSON.parse(localStorage.getItem("stage"));
+			money = JSON.parse(localStorage.getItem("money"));
+			var invoke = JSON.parse(localStorage.getItem("invoke")) ; 
+			preStage.pickSoldier.pickSoldierList = [] ;
+			preStage.pickSoldier.initSoldierList();
+			for ( var i = 0 ; i < invoke.length ; i ++ ){
+				if ( invoke[i] !== null ){
+					var index = invoke[i] ;
+					invokeList[i].index = index ;
+					invokeList[i].soldier = mySoldierList[index] ;
+					preStage.pickSoldier.pickSoldierList.splice(index,1);
+					mySoldierList[index].isPicked = true ;
+					preStage.isShowChooseSoldier = false ;
+					invokeList[i].x += 24 ;
+					invokeList[i].y += 54 ;
+				}
+			}
+			town.refreshItemList();
+		},
+		detectMouseEnterOver : function(temp,offsetX,offsetY,ratio){
+			if ( common.isMouseEnterRange(temp,login.newButton,offsetX,offsetY,ratio) ){
+				login.setMouseEnterNewButtonOver() ;
+				return ;
+			} else if ( localStorage.getItem("item") !== null ){
+				if ( common.isMouseEnterRange(temp,login.loadButton,offsetX,offsetY,ratio) ){
+					login.setMouseEnterNewButtonOver() ;
+					return ;
+				}
+			}
+			common.setMouseEnterNone();
+		},
+		detectMouseEnterClick : function(temp,offsetX,offsetY,ratio){
+			if ( common.isMouseEnterRange(temp,login.newButton,offsetX,offsetY,ratio) ){
+				login.setMouseEnterNewButtonClick() ;
+				return ;
+			} else if ( localStorage.getItem("item") !== null ){
+				if ( common.isMouseEnterRange(temp,login.loadButton,offsetX,offsetY,ratio) ){
+					login.setMouseEnterLoadButtonClick() ;
+					return ;
+				}
+			}
+			common.setMouseEnterNone();
+		},
+		mouseOver :function(e){
+			var info = common.getSizeInfo(e) ;
+			login.detectMouseEnterOver(info.temp,info.offsetX,info.offsetY,info.ratio);
+		},
+		mouseClick: function(e){
+			var info = common.getSizeInfo(e) ;
+			login.detectMouseEnterClick(info.temp,info.offsetX,info.offsetY,info.ratio);
+		}
+	}
 
 	var setting = {				
 		setMouseEvent : function(over,click){
@@ -106,11 +223,44 @@ var Defender = (function(){
 	}
 
 	var common = {
+		save : function(){
+			var item = [] ;
+			for ( var i = 0 ; i < itemList.length ; i ++ ){
+				item.push({id:itemList[i].id});
+			}
+			var soldier = [] ;
+			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
+				var skill = [] ;
+				for ( var j = 0 ; j < mySoldierList[i].skill.length ; j ++ ){
+					skill.push({ 
+						level : mySoldierList[i].skill[j].nowLevel
+					}) ;
+				}
+				var equip = {} ;
+				for ( var e in mySoldierList[i].equipment ){
+					equip[e] = {} ;
+					equip[e].id = mySoldierList[i].equipment[e].id ;
+				}
+				soldier.push({
+					id : mySoldierList[i].id , exp : mySoldierList[i].nowExp , level : mySoldierList[i].level , point : mySoldierList[i].point , skill : skill , equip : equip 
+				} );
+			}
+
+			localStorage.setItem("item", JSON.stringify(item));
+			localStorage.setItem("money", money);
+			localStorage.setItem("stage", doneStage);
+			localStorage.setItem("soldier", JSON.stringify(soldier));
+			var invoke = [] ;
+			for ( var i = 0 ; i < invokeList.length ; i ++ ){
+				invoke.push(invokeList[i].index);
+			}
+			localStorage.setItem("invoke", JSON.stringify(invoke));
+		},
 		createItem : function(data){
 			var item = {
 				name : data.name || "" ,
 				id : data.id || 0 ,
-				canvas : canvasMap["item_"+data.id] ,
+				canvas : "item_"+data.id ,
 				point : data.point || 0 ,
 				effect : data.effect || [] ,
 				f : data.f ,
@@ -146,9 +296,9 @@ var Defender = (function(){
 				if ( obj.ratio !== undefined )
 					ratio = obj.ratio ;
 				if ( obj.nowFrame === undefined )
-					gameCtx.drawImage(obj.canvas,obj.x,obj.y,obj.w*ratio,obj.h*ratio);
+					gameCtx.drawImage(canvasMap[obj.canvas],obj.x,obj.y,obj.w*ratio,obj.h*ratio);
 				else if ( obj.canvas !== undefined )
-					gameCtx.drawImage(obj.canvas,obj.nowFrame*obj.w,0,obj.w,obj.h,obj.x,obj.y,obj.w*ratio,obj.h*ratio);
+					gameCtx.drawImage(canvasMap[obj.canvas],obj.nowFrame*obj.w,0,obj.w,obj.h,obj.x,obj.y,obj.w*ratio,obj.h*ratio);
 			} else {
 				if ( obj.font !== undefined )
 					gameCtx.font= obj.font ;
@@ -324,6 +474,22 @@ var Defender = (function(){
 				attackOffsetX : -3 ,
 				attackType : ["physical"],
 				upgrade : function(n){
+					if ( this.level < 10) 
+						this.goalExp = Math.round(2*this.goalExp) ;
+					else if ( this.level < 30 ) {
+						this.goalExp = Math.round(1.5*this.goalExp) ;
+					} else if ( this.level < 40 ) {
+						this.goalExp = Math.round(1.4*this.goalExp) ;
+					} else if ( this.level < 50 ) {
+						this.goalExp = Math.round(1.3*this.goalExp) ;
+					} else if ( this.level < 60 ) {
+						this.goalExp = Math.round(1.2*this.goalExp) ;
+					} else if ( this.level < 70 ) {
+						this.goalExp = Math.round(1.1*this.goalExp) ;
+					} else if ( this.level < 80 ) {
+						this.goalExp = Math.round(1.09*this.goalExp) ;
+					} 
+					this.level ++ ;
 					this.atk += n* 2 ;
 				}
 			}) ;
@@ -354,7 +520,7 @@ var Defender = (function(){
 					state : "doubleArrow" ,
 					w : canvasMap["archer_skill0"].width / 6 ,
 					h : canvasMap["archer_skill0"].height ,
-					canvas : canvasMap["archer_skill0"] ,
+					canvas : "archer_skill0" ,
 					nowFrame : 0 ,
 					totalFrame : 6 ,
 					delay : 5 ,
@@ -379,7 +545,7 @@ var Defender = (function(){
 						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
 							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
 								common.createAnimation({
-									canvas : canvasMap["archer_skill0_effect"] ,
+									canvas : "archer_skill0_effect" ,
 									x : x + canvas.attackEffectDx  ,
 									y : y + canvas.attackEffectDy ,
 									nowFrame : 0 ,
@@ -403,7 +569,7 @@ var Defender = (function(){
 								for ( var j = 0 ; j < effect.length ; j ++ ){
 									effect[j].f(atkSum);
 								}
-								target[i].isHit({id:-1,canvas:canvasMap["archer_skill0_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:6,width:canvasMap["archer_skill0_hit"].width/6,height:canvasMap["archer_skill0_hit"].height,type:"archer_skill0",attackType:attackType}) ;
+								target[i].isHit({id:-1,canvas:"archer_skill0_hit",atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:6,width:canvasMap["archer_skill0_hit"].width/6,height:canvasMap["archer_skill0_hit"].height,type:"archer_skill0",attackType:attackType}) ;
 								canvas.effectBoolean[i] = true ;
 								break ;
 							}
@@ -493,6 +659,22 @@ var Defender = (function(){
 				skill : [doubleArrow,criticalArrow] ,
 				attackType : ["physical","sky"],
 				upgrade : function(n){
+					if ( this.level < 10) 
+						this.goalExp = Math.round(2*this.goalExp) ;
+					else if ( this.level < 30 ) {
+						this.goalExp = Math.round(1.5*this.goalExp) ;
+					} else if ( this.level < 40 ) {
+						this.goalExp = Math.round(1.4*this.goalExp) ;
+					} else if ( this.level < 50 ) {
+						this.goalExp = Math.round(1.3*this.goalExp) ;
+					} else if ( this.level < 60 ) {
+						this.goalExp = Math.round(1.2*this.goalExp) ;
+					} else if ( this.level < 70 ) {
+						this.goalExp = Math.round(1.1*this.goalExp) ;
+					} else if ( this.level < 80 ) {
+						this.goalExp = Math.round(1.09*this.goalExp) ;
+					} 
+					this.level ++ ;
 					this.atk += n* 2 ;
 				}
 			}) ;
@@ -523,7 +705,7 @@ var Defender = (function(){
 					state : "magicClaw" ,
 					w : canvasMap["magician_skill0"].width / 3 ,
 					h : canvasMap["magician_skill0"].height ,
-					canvas : canvasMap["magician_skill0"] ,
+					canvas : "magician_skill0" ,
 					nowFrame : 0 ,
 					totalFrame : 3 ,
 					delay : 10 ,
@@ -548,7 +730,7 @@ var Defender = (function(){
 						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
 							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
 								common.createAnimation({
-									canvas : canvasMap["magician_skill0_effect"] ,
+									canvas : "magician_skill0_effect" ,
 									x : x + canvas.attackEffectDx  ,
 									y : y + canvas.attackEffectDy ,
 									nowFrame : 0 ,
@@ -572,7 +754,7 @@ var Defender = (function(){
 									effect[j].f(atkSum);
 								}
 								if ( i === 0 ){
-									target[0].isHit({id:-1,canvas:canvasMap["magician_skill0_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:5,width:canvasMap["magician_skill0_hit"].width/5,height:canvasMap["magician_skill0_hit"].height,type:"magician_skill0",attackType:attackType}) ;
+									target[0].isHit({id:-1,canvas:"magician_skill0_hit",atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:5,width:canvasMap["magician_skill0_hit"].width/5,height:canvasMap["magician_skill0_hit"].height,type:"magician_skill0",attackType:attackType}) ;
 								}
 								else {
 									target[0].isHit({id:-1,atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:5,width:canvasMap["magician_skill0_hit"].width/5,height:canvasMap["magician_skill0_hit"].height,attackType:attackType}) ;
@@ -621,7 +803,7 @@ var Defender = (function(){
 					state : "magicBomb" ,
 					w : canvasMap["magician_skill1"].width / 3 ,
 					h : canvasMap["magician_skill1"].height ,
-					canvas : canvasMap["magician_skill1"] ,
+					canvas : "magician_skill1" ,
 					nowFrame : 0 ,
 					totalFrame : 3 ,
 					delay : 10 ,
@@ -636,7 +818,7 @@ var Defender = (function(){
 					attackEffectVx : 0 ,
 					attackEffectVy : 0 ,
 					hitDx : -40 ,
-					hitDy : -80 ,
+					hitDy : 0 ,
 					offsetX : -40 ,
 					offsetY : -15 
 				} , 
@@ -647,7 +829,7 @@ var Defender = (function(){
 						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
 							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
 								common.createAnimation({
-									canvas : canvasMap[name] ,
+									canvas : name ,
 									x : x + canvas.attackEffectDx  ,
 									y : y + canvas.attackEffectDy ,
 									nowFrame : 0 ,
@@ -673,7 +855,7 @@ var Defender = (function(){
 										effect[k].f(atkSum);
 									}
 									if ( j === 0 ){
-										target[j].isHit({id:-1,canvas:canvasMap[name+"_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name,attackType:attackType}) ;
+										target[j].isHit({id:-1,canvas:name+"_hit",atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name,attackType:attackType}) ;
 									}
 									else {
 										target[j].isHit({id:-1,atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,attackType:attackType}) ;
@@ -685,7 +867,7 @@ var Defender = (function(){
 						}
 					},
 					getTargetFunction : function(x,y,range,state,canvas,target){
-						var count = 0 , r = 100 ;
+						var count = 0 , r = 120 ;
 						for ( var i = 0 ; i < monsterList.length  ; i ++ ){
 							if ( Math.abs(monsterList[i].x-x) <= range && monsterList[i].hitAble === true ){
 								var mx = monsterList[i].x ;
@@ -729,6 +911,22 @@ var Defender = (function(){
 				skill : [magicBomb,magicClaw],
 				attackType : ["magic"],
 				upgrade : function(n){
+					if ( this.level < 10) 
+						this.goalExp = Math.round(2*this.goalExp) ;
+					else if ( this.level < 30 ) {
+						this.goalExp = Math.round(1.5*this.goalExp) ;
+					} else if ( this.level < 40 ) {
+						this.goalExp = Math.round(1.4*this.goalExp) ;
+					} else if ( this.level < 50 ) {
+						this.goalExp = Math.round(1.3*this.goalExp) ;
+					} else if ( this.level < 60 ) {
+						this.goalExp = Math.round(1.2*this.goalExp) ;
+					} else if ( this.level < 70 ) {
+						this.goalExp = Math.round(1.1*this.goalExp) ;
+					} else if ( this.level < 80 ) {
+						this.goalExp = Math.round(1.09*this.goalExp) ;
+					} 
+					this.level ++ ;
 					this.atk += n* 2 ;
 				}
 			}) ;
@@ -762,7 +960,7 @@ var Defender = (function(){
 					state : "disorder" ,
 					w : canvasMap["rogue_skill0"].width / 3 ,
 					h : canvasMap["rogue_skill0"].height ,
-					canvas : canvasMap["rogue_skill0"] ,
+					canvas : "rogue_skill0" ,
 					nowFrame : 0 ,
 					totalFrame : 3 ,
 					delay : 10 ,
@@ -788,7 +986,7 @@ var Defender = (function(){
 						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
 							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
 								common.createAnimation({
-									canvas : canvasMap[name] ,
+									canvas : name ,
 									x : x + canvas.attackEffectDx  ,
 									y : y + canvas.attackEffectDy ,
 									nowFrame : 0 ,
@@ -810,7 +1008,7 @@ var Defender = (function(){
 							if ( canvas.effectFrame[i] === canvas.nowFrame && canvas.effectBoolean[i] === false ){
 								var atkSum = { result : Math.round((atk)*ratio) , state : [ { name : "disorder"  , ratio : ratio , remain : -1  } ] } ;
 								hitEffectVx = target[0].speed ;
-								target[0].isHit({canvas:canvasMap[name+"_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name,hitEffectFrame:hitEffectFrame,buff:true,hitEffectDx:hitEffectDx,hitEffectDy:hitEffectDy,hitEffectDelay:hitEffectDelay,hitEffectVx:hitEffectVx,attackType:attackType}) ;
+								target[0].isHit({canvas:name+"_hit",atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name,hitEffectFrame:hitEffectFrame,buff:true,hitEffectDx:hitEffectDx,hitEffectDy:hitEffectDy,hitEffectDelay:hitEffectDelay,hitEffectVx:hitEffectVx,attackType:attackType}) ;
 								canvas.effectBoolean[i] = true ;
 								break ;
 							}
@@ -864,7 +1062,7 @@ var Defender = (function(){
 					state : "doubleStab" ,
 					w : canvasMap["rogue_skill1"].width / 3 ,
 					h : canvasMap["rogue_skill1"].height ,
-					canvas : canvasMap["rogue_skill1"] ,
+					canvas : "rogue_skill1" ,
 					nowFrame : 0 ,
 					totalFrame : 3 ,
 					delay : 8 ,
@@ -878,8 +1076,8 @@ var Defender = (function(){
 					attackEffectDy : 20 ,
 					attackEffectVx : 0 ,
 					attackEffectVy : 0 ,
-					hitDx : -42 ,
-					hitDy : -40 ,
+					hitDx : 25 ,
+					hitDy : 7 ,
 					offsetX : -30 ,
 					offsetY : 5
 				} , 
@@ -890,7 +1088,7 @@ var Defender = (function(){
 						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
 							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
 								common.createAnimation({
-									canvas : canvasMap[name] ,
+									canvas : name ,
 									x : x + canvas.attackEffectDx  ,
 									y : y + canvas.attackEffectDy ,
 									nowFrame : 0 ,
@@ -916,7 +1114,7 @@ var Defender = (function(){
 									effect[j].f(atkSum);
 								}
 								if ( i === 0 ){
-									target[0].isHit({canvas:canvasMap[name+"_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name,attackType:attackType}) ;
+									target[0].isHit({canvas:name+"_hit",atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name,attackType:attackType}) ;
 								} else {
 									target[0].isHit({atk:atkSum,attackType:attackType}) ;	
 								}
@@ -961,6 +1159,22 @@ var Defender = (function(){
 				skill : [disorder,doubleStab],
 				attackType : ["physical"],
 				upgrade : function(n){
+					if ( this.level < 10) 
+						this.goalExp = Math.round(2*this.goalExp) ;
+					else if ( this.level < 30 ) {
+						this.goalExp = Math.round(1.5*this.goalExp) ;
+					} else if ( this.level < 40 ) {
+						this.goalExp = Math.round(1.4*this.goalExp) ;
+					} else if ( this.level < 50 ) {
+						this.goalExp = Math.round(1.3*this.goalExp) ;
+					} else if ( this.level < 60 ) {
+						this.goalExp = Math.round(1.2*this.goalExp) ;
+					} else if ( this.level < 70 ) {
+						this.goalExp = Math.round(1.1*this.goalExp) ;
+					} else if ( this.level < 80 ) {
+						this.goalExp = Math.round(1.09*this.goalExp) ;
+					} 
+					this.level ++ ;
 					this.atk += n* 2 ;
 				}
 			}) ;
@@ -992,7 +1206,7 @@ var Defender = (function(){
 					state : "slashBlast" ,
 					w : canvasMap["swordman_skill0"].width / 3 ,
 					h : canvasMap["swordman_skill0"].height ,
-					canvas : canvasMap["swordman_skill0"] ,
+					canvas : "swordman_skill0" ,
 					nowFrame : 0 ,
 					totalFrame : 3 ,
 					delay : 10 ,
@@ -1006,8 +1220,8 @@ var Defender = (function(){
 					attackEffectDy : -80 ,
 					attackEffectVx : 0 ,
 					attackEffectVy : 0 ,
-					hitDx : -15 ,
-					hitDy : -20 ,
+					hitDx : 5 ,
+					hitDy : 0 ,
 					offsetX : -24 ,
 					offsetY : 7 
 				} , 
@@ -1018,7 +1232,7 @@ var Defender = (function(){
 						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
 							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
 								common.createAnimation({
-									canvas : canvasMap[name] ,
+									canvas : name ,
 									x : x + canvas.attackEffectDx  ,
 									y : y + canvas.attackEffectDy ,
 									nowFrame : 0 ,
@@ -1043,7 +1257,7 @@ var Defender = (function(){
 									for ( var k = 0 ; k < effect.length ; j ++ ){
 										effect[k].f(atkSum);
 									}
-									target[j].isHit({id:-1,canvas:canvasMap[name+"_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name,attackType:attackType}) ;
+									target[j].isHit({id:-1,canvas:name+"_hit",atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name,attackType:attackType}) ;
 								}
 								canvas.effectBoolean[i] = true ;
 								break ;
@@ -1094,7 +1308,7 @@ var Defender = (function(){
 					state : "powerStrike" ,
 					w : canvasMap["swordman_skill1"].width / 3 ,
 					h : canvasMap["swordman_skill1"].height ,
-					canvas : canvasMap["swordman_skill1"] ,
+					canvas : "swordman_skill1" ,
 					nowFrame : 0 ,
 					totalFrame : 3 ,
 					delay : 13 ,
@@ -1108,8 +1322,8 @@ var Defender = (function(){
 					attackEffectDy : -80 ,
 					attackEffectVx : 0 ,
 					attackEffectVy : 0 ,
-					hitDx : -50 ,
-					hitDy : -13 ,
+					hitDx : -35 ,
+					hitDy : 0 ,
 					offsetX : -24 ,
 					offsetY : -11 
 				} , 
@@ -1120,7 +1334,7 @@ var Defender = (function(){
 						for ( var i = 0 ; i < canvas.animationBeginFrame.length ; i ++  ){
 							if ( canvas.animationBeginFrame[i] === canvas.nowFrame && canvas.animationBoolean[i] === false ){
 								common.createAnimation({
-									canvas : canvasMap[name] ,
+									canvas : name ,
 									x : x + canvas.attackEffectDx  ,
 									y : y + canvas.attackEffectDy ,
 									nowFrame : 0 ,
@@ -1144,7 +1358,7 @@ var Defender = (function(){
 								for ( var k = 0 ; k < effect.length ; j ++ ){
 									effect[k].f(atkSum);
 								}
-								target[0].isHit({id:-1,canvas:canvasMap[name+"_hit"],atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name}) ;
+								target[0].isHit({id:-1,canvas:name+"_hit",atk:atkSum,dx:canvas.hitDx,dy:canvas.hitDy,totalFrame:total,width:canvasMap[name+"_hit"].width/total,height:canvasMap[name+"_hit"].height,type:name}) ;
 								canvas.effectBoolean[i] = true ;
 								break ;
 							}
@@ -1185,6 +1399,22 @@ var Defender = (function(){
 				skill : [slashBlast,powerStrike],
 				attackType : ["physical"],
 				upgrade : function(n){
+					if ( this.level < 10) 
+						this.goalExp = Math.round(2*this.goalExp) ;
+					else if ( this.level < 30 ) {
+						this.goalExp = Math.round(1.5*this.goalExp) ;
+					} else if ( this.level < 40 ) {
+						this.goalExp = Math.round(1.4*this.goalExp) ;
+					} else if ( this.level < 50 ) {
+						this.goalExp = Math.round(1.3*this.goalExp) ;
+					} else if ( this.level < 60 ) {
+						this.goalExp = Math.round(1.2*this.goalExp) ;
+					} else if ( this.level < 70 ) {
+						this.goalExp = Math.round(1.1*this.goalExp) ;
+					} else if ( this.level < 80 ) {
+						this.goalExp = Math.round(1.09*this.goalExp) ;
+					} 
+					this.level ++ ;
 					this.atk += n* 2 ;
 				}
 			}) ;
@@ -1203,7 +1433,7 @@ var Defender = (function(){
 				offsetX : 0 ,
 				offsetY : 9 ,
 				money : 10 ,
-				item : [{name:"sword",probability:0.3},{name:"sapphireStaff",probability:0.2}] 
+				item : [{name:"sword",probability:0.1},{name:"sapphireStaff",probability:0.05}] 
 			});
 			monsterMap['snail'] = snail ;
 
@@ -1246,7 +1476,7 @@ var Defender = (function(){
 
 			var orangeMushroom = common.createMonster({
 				id: 3,
-				maxHp: 300,
+				maxHp: 500,
 				def: 5,
 				speed: 1.5,
 				moveFrame: 3,
@@ -1256,9 +1486,25 @@ var Defender = (function(){
 				offsetY : -10 ,
 				hitDy : 25 ,
 				money : 25 ,
-				item : [{name:"sword",probability:0.3},{name:"sapphireStaff",probability:0.2}] 
+				item : [{name:"sword",probability:0.1},{name:"sapphireStaff",probability:0.05}] 
 			});
 			monsterMap['orange-mushroom'] = orangeMushroom ;
+
+			var shroom = common.createMonster({
+				id: 4,
+				maxHp: 350,
+				def: 3,
+				speed: 1.8,
+				moveFrame: 4,
+				hitFrame: 1,
+				dieFrame: 4,
+				offsetX : 0 ,
+				offsetY : 5 ,
+				hitDy : 25 ,
+				money : 20 ,
+				item : [{name:"sword",probability:0.1},{name:"sapphireStaff",probability:0.05}] 
+			});
+			monsterMap['shroom'] = shroom ;
 
 		},
 		createMonsterSkill : function(){
@@ -1316,7 +1562,7 @@ var Defender = (function(){
 						var h = canvasMap["number_damage_0"].height ;
 						for ( var i = 0 ; i < d.length ; i ++ ){
 							common.createAnimation({
-								canvas : canvasMap["number_damage_"+d[i]] ,
+								canvas : "number_damage_"+d[i] ,
 								x : this.x + dx - w*d.length / 2  + this.speed*15  , 
 								y : this.y + dy - h + this.offsetY,
 								dy : -1 ,
@@ -1336,7 +1582,7 @@ var Defender = (function(){
 						var w = canvasMap["number_damage2_0"].width ; 
 						var h = canvasMap["number_damage2_0"].height ;
 						common.createAnimation({
-							canvas : canvasMap["number_damage2_10"] ,
+							canvas : "number_damage2_10" ,
 							x : this.x + dx - w*d.length / 2  + this.speed * 15,
 							y : this.y + dy - h + this.offsetY,
 							dy : -1 ,
@@ -1350,7 +1596,7 @@ var Defender = (function(){
 						});
 						for ( var i = 0 ; i < d.length ; i ++ ){
 							common.createAnimation({
-								canvas : canvasMap["number_damage2_"+d[i]] ,
+								canvas : "number_damage2_"+d[i] ,
 								x : this.x + dx - w*d.length / 2 + this.speed*15,
 								y : this.y + dy - h + this.offsetY,
 								dy : -1 ,
@@ -1386,8 +1632,8 @@ var Defender = (function(){
 									delay : 70 ,
 									timer : 0 ,
 									totalFrame : 0,
-									width : item.canvas.width , 
-									height : item.canvas.height ,
+									width : canvasMap[item.canvas].width , 
+									height : canvasMap[item.canvas].height ,
 									ratio : 0.7 ,
 									effect : [{type:"rotate",speed:17,remain:30},{type:"gravity",remain:30,vy:-10}] ,
 									degree : 45 
@@ -1398,7 +1644,7 @@ var Defender = (function(){
 						var r = Math.random();
 						if ( r <= 0.5 ){
 							tempAnimation.push({
-								canvas : canvasMap["money"] ,
+								canvas : "money" ,
 								x : this.x + di + 20 ,
 								y : this.y - 8 ,
 								nowFrame : 0 ,
@@ -1439,7 +1685,7 @@ var Defender = (function(){
 					var w = this[state].w ;
 					var h = this[state].h ;
 					var offsetX = this[state].offsetX || 0 , offsetY = this[state].offsetY || 0 ;
-					gameCtx.drawImage(canvas,w*nowFrame,0,w,h,this.x-w/2,this.y+this.offsetY-h/2,w,h);
+					gameCtx.drawImage(canvasMap[canvas],w*nowFrame,0,w,h,this.x-w/2,this.y+this.offsetY-h/2,w,h);
 					if ( this[state].timer < this[state].delay  ){
 						this[state].timer ++ ;
 					} else if ( this[state].timer >= this[state].delay  ){
@@ -1482,7 +1728,7 @@ var Defender = (function(){
 							break ;
 						} else {							
 							state[i].canvas = {
-								canvas : canvasMap[type+"_hit_effect"] ,
+								canvas : type+"_hit_effect" ,
 								x : data.hitEffectDx -  canvasMap[type+"_hit_effect"].width / data.totalFrame/2 + this.hpDx ,
 								y : data.hitEffectDy+this.offsetY - this["move"].h/2 - canvasMap[type+"_hit_effect"].height/2,
 								nowFrame : 0 ,
@@ -1529,8 +1775,8 @@ var Defender = (function(){
 					this.nowHp -= damage ;
 					if ( canvasMap[type+"_hit"] !== undefined ){
 						common.createAnimation({
-							canvas : canvasMap[type+"_hit"] || data.canvas,
-							x : this.x - canvasMap[type+"_hit"].width / data.totalFrame/2 + this.speed * 10, 
+							canvas : type+"_hit" || data.canvas,
+							x : this.x - canvasMap[type+"_hit"].width / data.totalFrame/2 + this.speed * 10 + dx , 
 							y : this.y + this.offsetY - this["move"].h/2 + this.hitDy + dy - canvasMap[type+"_hit"].height/2 ,
 							nowFrame : 0 ,
 							delay : data.delay || 5 ,
@@ -1560,7 +1806,7 @@ var Defender = (function(){
 						totalFrame : data.moveFrame ,
 						w : w / data.moveFrame ,
 						h : h ,
-						canvas : canvas ,
+						canvas : monsterIdList[this.id]+"_move" ,
 						delay : 10 ,
 						timer : 0 ,
 						offsetX : this.offsetX || 0 ,
@@ -1574,7 +1820,7 @@ var Defender = (function(){
 						totalFrame : data.hitFrame ,
 						w : w / data.hitFrame ,
 						h : h ,
-						canvas : canvas ,
+						canvas : monsterIdList[this.id]+"_hit" ,
 						delay : 10 ,
 						timer : 0 ,
 						offsetX : this.offsetX || 0 ,
@@ -1589,7 +1835,7 @@ var Defender = (function(){
 						totalFrame : data.dieFrame ,
 						w : w / data.dieFrame ,
 						h : h ,
-						canvas : canvas ,
+						canvas : monsterIdList[this.id]+"_die" ,
 						delay : 10 ,
 						timer : 0 ,
 						offsetX : data.dieDx || 0 ,
@@ -1744,7 +1990,7 @@ var Defender = (function(){
 					if ( this.state === "attack" ){
 						if ( this.attack.animationBeginFrame === this.attack.nowFrame && this.attack.animationBoolean === false ){
 							common.createAnimation({
-								canvas : canvasMap[roleList[this.id]+"_attack_effect"] ,
+								canvas : roleList[this.id]+"_attack_effect" ,
 								x : x + this.attackEffectDx ,
 								y : y + this.attackEffectDy ,
 								nowFrame : 0 ,
@@ -1808,7 +2054,7 @@ var Defender = (function(){
 						totalFrame : data.standFrame ,
 						w : w / data.standFrame ,
 						h : h ,
-						canvas : canvas ,
+						canvas : roleList[this.id]+"_stand" ,
 						delay : 10 ,
 						timer : 0 ,
 						offsetX : this.standOffsetX ,
@@ -1823,7 +2069,7 @@ var Defender = (function(){
 						totalFrame : data.attackFrame ,
 						w : w / data.attackFrame ,
 						h : h ,
-						canvas : canvas ,
+						canvas : roleList[this.id]+"_attack" ,
 						delay : 10 ,
 						timer : 0 , 
 						effectFrame : data.attackEffectFrame ,
@@ -1992,6 +2238,7 @@ var Defender = (function(){
 			}
 		},
 		initMySoldierList : function(){
+
 			for ( var i = 0 ; i < 8 ; i ++ ){
 				mySoldierList.push(common.clone(soldierMap['beginner']));
 			}
@@ -2021,13 +2268,16 @@ var Defender = (function(){
 			try {
 				if ( nowPage === 'loadPage' ){
 					loadPage.showAll();
-				}
-				else if ( nowPage === 'preStage' ){
+				} else if ( nowPage === "login" ){
+					login.showAll();
+				} else if ( nowPage === 'preStage' ){
 					preStage.showAll();
 				} else if ( nowPage.match('stage') !== null ){
 					stage[nowStage].showAll();
+					common.save();
 				} else if ( nowPage === "town" ){
 					town.showAll();
+					common.save();
 				}
 				common.drawObject(fullscreen);
 				setting.setMouseEvent(setting.mouseOver,setting.mouseClick);
@@ -2070,24 +2320,14 @@ var Defender = (function(){
 			loadPage.showBackground();
 			loadPage.showProgress();
 			if ( loadImageProgress === imageList.length ){
-				fullscreen = { x : 1220 , y : 20 , canvas : canvasMap["fullscreen"] , w : canvasMap["fullscreen"].width ,h : canvasMap["fullscreen"].height } ;		
+				fullscreen = { x : 1220 , y : 20 , canvas : "fullscreen" , w : canvasMap["fullscreen"].width ,h : canvasMap["fullscreen"].height } ;		
 				common.initSoldierMap();
 				common.initMonsterMap();
 				common.initItemMap();
-				itemList.push(common.clone(itemMap["sword"]));
-				itemList.push(common.clone(itemMap["sapphireStaff"]));
-				itemList.push(common.clone(itemMap["sword"]));
-				itemList.push(common.clone(itemMap["sapphireStaff"]));
-				itemList.push(common.clone(itemMap["sword"]));
-				itemList.push(common.clone(itemMap["sword"]));
-				itemList.push(common.clone(itemMap["sapphireStaff"]));
-				itemList.push(common.clone(itemMap["sapphireStaff"]));
-				itemList.push(common.clone(itemMap["sapphireStaff"]));
 				common.initMySoldierList();
 				common.initNumberDamage();
-				nowPage = 'town' ;
-				town.init();
-				preStage.initInvoke();
+				login.init();
+				nowPage = 'login' ;
 			}
 		}
 	}
@@ -2360,7 +2600,7 @@ var Defender = (function(){
 					var canvas = invokeList[i].soldier[state].canvas ;
 					var w = invokeList[i].soldier[state].w ;
 					var h = invokeList[i].soldier[state].h ;
-					gameCtx.drawImage(canvas,w*nowFrame,0,w,h,invokeList[i].x+invokeList[i].soldier[state].offsetX,invokeList[i].y+invokeList[i].soldier[state].offsetY,w,h);
+					gameCtx.drawImage(canvasMap[canvas],w*nowFrame,0,w,h,invokeList[i].x+invokeList[i].soldier[state].offsetX,invokeList[i].y+invokeList[i].soldier[state].offsetY,w,h);
 
 				}
 			}
@@ -2460,7 +2700,7 @@ var Defender = (function(){
 				}
 			} , 
 			initCloseButton : function(){
-				this.chooseBack = { x : canvasWidth/2-canvasMap['choose_soldier'].width/2 , y : canvasHeight/2-canvasMap['choose_soldier'].height/2 , w : canvasMap['choose_soldier'].width , h : canvasMap['choose_soldier'].height , canvas : canvasMap['choose_soldier'] } ;
+				this.chooseBack = { x : canvasWidth/2-canvasMap['choose_soldier'].width/2 , y : canvasHeight/2-canvasMap['choose_soldier'].height/2 , w : canvasMap['choose_soldier'].width , h : canvasMap['choose_soldier'].height , canvas : 'choose_soldier' } ;
 				preStage.pickSoldier.closeButton = { x : 990 , y : 160 , w : canvasMap['close'].width , h : canvasMap['close'].height } ;
 			},
 			setMouseEnterPickSoldierOver : function(index){
@@ -2468,6 +2708,7 @@ var Defender = (function(){
 				mouseOver = "pickSoldier" + index ;
 			},
 			setInvokeToSoldier : function(index){
+				invokeList[preStage.nowPickInvoke].index = index ;
 				invokeList[preStage.nowPickInvoke].soldier = mySoldierList[index] ;
 				preStage.pickSoldier.pickSoldierList.splice(index,1);
 				//invokeList[preStage.nowPickInvoke].w = canvasMap[common.getRole(mySoldierList[index].id)+"_stand"].width/3;
@@ -2620,7 +2861,7 @@ var Defender = (function(){
 				this.initCloseButton();
 			},
 			initCloseButton : function(){
-				this.infoBack = { x : canvasWidth/2-canvasMap['info_back'].width/2 , y : canvasHeight/2-canvasMap['info_back'].height/2 , canvas : canvasMap['info_back'] , w : canvasMap['info_back'].width , h : canvasMap['info_back'].height };
+				this.infoBack = { x : canvasWidth/2-canvasMap['info_back'].width/2 , y : canvasHeight/2-canvasMap['info_back'].height/2 , canvas : 'info_back' , w : canvasMap['info_back'].width , h : canvasMap['info_back'].height };
 				this.closeButton = { x : 1025 , y : 137 , w : canvasMap['info_close'].width , h : canvasMap['info_close'].height } ;
 			},
 			showAll: function(){
@@ -2743,7 +2984,7 @@ var Defender = (function(){
 				var dx = animationList[i].dx || 0 , dy = animationList[i].dy || 0 ;
 				var ratio = animationList[i].ratio || 1 ;
 				if ( animationList[i].effect === undefined ||  animationList[i].effect.length === 0 ){
-					gameCtx.drawImage(animationList[i].canvas,animationList[i].nowFrame*animationList[i].width,0,animationList[i].width,animationList[i].height,animationList[i].x+dx,animationList[i].y+dy,animationList[i].width*ratio,animationList[i].height*ratio);
+					gameCtx.drawImage(canvasMap[animationList[i].canvas],animationList[i].nowFrame*animationList[i].width,0,animationList[i].width,animationList[i].height,animationList[i].x+dx,animationList[i].y+dy,animationList[i].width*ratio,animationList[i].height*ratio);
 				} else {
 					gameCtx.save();
 					for ( var j = 0 ; j < animationList[i].effect.length ; j ++ ){
@@ -2767,7 +3008,7 @@ var Defender = (function(){
 							}
 						}
 					}
-					gameCtx.drawImage(animationList[i].canvas,animationList[i].nowFrame*animationList[i].width,0,animationList[i].width,animationList[i].height,0+dx,0+dy,animationList[i].width*ratio,animationList[i].height*ratio);
+					gameCtx.drawImage(canvasMap[animationList[i].canvas],animationList[i].nowFrame*animationList[i].width,0,animationList[i].width,animationList[i].height,0+dx,0+dy,animationList[i].width*ratio,animationList[i].height*ratio);
 					//gameCtx.drawImage(animationList[i].canvas,0,0,animationList[i].width*ratio,animationList[i].height*ratio);
 					gameCtx.restore();
 				}
@@ -2789,7 +3030,7 @@ var Defender = (function(){
 				if ( invokeList[i].soldier.id !== -1 ){
 					if ( invokeList[i].isLevelUp === true ){
 						common.createAnimation({
-							canvas : canvasMap["levelup"] ,
+							canvas : "levelup" ,
 							x : invokeList[i].x - 120 ,
 							y : invokeList[i].y - 260,
 							nowFrame : 0 ,
@@ -2809,22 +3050,6 @@ var Defender = (function(){
 			var temp = invokeList[index].soldier.goalExp - invokeList[index].soldier.nowExp ;
 			invokeList[index].isLevelUp = true ;
 			invokeList[index].soldier.nowExp = 0 ;
-			invokeList[index].soldier.level ++ ;
-			if ( invokeList[index].soldier.level < 10) 
-				invokeList[index].soldier.goalExp = Math.round(2*invokeList[index].soldier.goalExp) ;
-			else if ( invokeList[index].soldier.level < 30 ) {
-				invokeList[index].soldier.goalExp = Math.round(1.5*invokeList[index].soldier.goalExp) ;
-			} else if ( invokeList[index].soldier.level < 40 ) {
-				invokeList[index].soldier.goalExp = Math.round(1.4*invokeList[index].soldier.goalExp) ;
-			} else if ( invokeList[index].soldier.level < 50 ) {
-				invokeList[index].soldier.goalExp = Math.round(1.3*invokeList[index].soldier.goalExp) ;
-			} else if ( invokeList[index].soldier.level < 60 ) {
-				invokeList[index].soldier.goalExp = Math.round(1.2*invokeList[index].soldier.goalExp) ;
-			} else if ( invokeList[index].soldier.level < 70 ) {
-				invokeList[index].soldier.goalExp = Math.round(1.1*invokeList[index].soldier.goalExp) ;
-			} else if ( invokeList[index].soldier.level < 80 ) {
-				invokeList[index].soldier.goalExp = Math.round(1.09*invokeList[index].soldier.goalExp) ;
-			} 
 			invokeList[index].soldier.point ++ ;
 			invokeList[index].soldier.upgrade(1);
 			invokeList[index].soldier.refreshState();
@@ -2961,7 +3186,7 @@ var Defender = (function(){
 			stage.initWin();
 			preStage.isGameStart = true ;
 			common.createAnimation({
-				canvas : canvasMap["start"] ,
+				canvas : "start" ,
 				x : 440  ,
 				y : 310,
 				nowFrame : 0 ,
@@ -2984,6 +3209,7 @@ var Defender = (function(){
 			init : function(){
 				stage.init();
 				stage.initExp(100);
+				stage.addMonsterDelay = 100 ;
 			},
 			showAll : function(){
 				common.setMouseEvent(preStage.mouseOver,preStage.mouseClick);
@@ -3010,7 +3236,36 @@ var Defender = (function(){
 			},
 			init : function(){
 				stage.init();
-				stage.initExp(100);
+				stage.initExp(200);
+				stage.addMonsterDelay = 100 ;
+			},
+			showAll : function(){
+				common.setMouseEvent(preStage.mouseOver,preStage.mouseClick);
+				stage.addMonster();
+				preStage.showBackground("stage1");
+				preStage.showDescription();
+				preStage.showInvoke("stage1");
+				stage.showMonster();
+				stage.soldierEvent();
+				stage.detectGame();
+				stage.showLevelUp();
+				stage.showAnimation();
+				preStage.showButton();
+			}
+		},
+		stage3 : {
+			initMonsterList : function(){
+				monsterList = [] ;
+				stage.addMonsterTimer = 0 ;
+				stage.monsterAllList = [] ;
+				for ( var i = 0 ; i < 10 ; i ++ ){
+					stage.monsterAllList.push(common.clone(monsterMap['shroom']));
+				}
+			},
+			init : function(){
+				stage.init();
+				stage.initExp(250);
+				stage.addMonsterDelay = 30 ;
 			},
 			showAll : function(){
 				common.setMouseEvent(preStage.mouseOver,preStage.mouseClick);
@@ -3058,7 +3313,7 @@ var Defender = (function(){
 			var x = town.character.item.x + 21 , y = town.character.item.y + 60;
 			for ( var i = page * 8 ; i < itemList.length && i < page * 8 + 8 ; i ++ ){
 				var item = itemList[i] ;
-				town.character.item.list.push({x:x,y:y,w:item.canvas.width,h:item.canvas.height,canvas:item.canvas}) ;
+				town.character.item.list.push({x:x,y:y,w:canvasMap[item.canvas].width,h:canvasMap[item.canvas].height,canvas:item.canvas}) ;
 				x += 72 ;
 				if ( i % 4 === 3 ){
 					x = town.character.item.x + 21 , y += 70 ;
@@ -3070,7 +3325,7 @@ var Defender = (function(){
 			var x = this.transfer.chooseSoldier.x , y = this.transfer.chooseSoldier.y+14 ;
 			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
 				x = i * 165 + 20  ;
-				this.soldierList.push({x:x,y:y,w:canvasMap['choose_soldier_back2'].width,h:canvasMap['choose_soldier_back2'].height,canvas:canvasMap['choose_soldier_back2']});
+				this.soldierList.push({x:x,y:y,w:canvasMap['choose_soldier_back2'].width,h:canvasMap['choose_soldier_back2'].height,canvas:'choose_soldier_back2'});
 			}
 		},
 		initCharacterObject : function(){
@@ -3089,9 +3344,9 @@ var Defender = (function(){
 					if ( mySoldierList[i].point <= 0 || mySoldierList[i].skill[j].nowLevel >= mySoldierList[i].skill[j].topLevel ){
 						u = 0 ;
 					} 
-					var s = { x : x2 , y : y2 , canvas : canvasMap["skill_back"] , w : canvasMap["skill_back"].width , h : canvasMap["skill_back"].height ,
-						icon : { x : x2 + 7 , y : y2 + 5, canvas : canvasMap[mySoldierList[i].skill[j].canvasName+"_icon"] , nowFrame : n , w : canvasMap[mySoldierList[i].skill[j].canvasName+"_icon"].width/3 , h : canvasMap[mySoldierList[i].skill[j].canvasName+"_icon"].height , ratio : 1.7 } ,
-						upgrade : { x : x2 + 235 , y : y2 + 39, canvas : canvasMap["upgrade"] , w : canvasMap["upgrade"].width / 2 , h : canvasMap["upgrade"].height , nowFrame : u } ,
+					var s = { x : x2 , y : y2 , canvas : "skill_back" , w : canvasMap["skill_back"].width , h : canvasMap["skill_back"].height ,
+						icon : { x : x2 + 7 , y : y2 + 5, canvas : mySoldierList[i].skill[j].canvasName+"_icon" , nowFrame : n , w : canvasMap[mySoldierList[i].skill[j].canvasName+"_icon"].width/3 , h : canvasMap[mySoldierList[i].skill[j].canvasName+"_icon"].height , ratio : 1.7 } ,
+						upgrade : { x : x2 + 235 , y : y2 + 39, canvas : "upgrade" , w : canvasMap["upgrade"].width / 2 , h : canvasMap["upgrade"].height , nowFrame : u } ,
 						name : { x : x2 + 75, y : y2 + 27, text : mySoldierList[i].skill[j].name } ,
 						nowLevel : { x : x2 + 75, y : y2 + 59 , text : mySoldierList[i].skill[j].nowLevel } 
 					} ;
@@ -3100,76 +3355,77 @@ var Defender = (function(){
 				var equip = [] ;
 				if ( mySoldierList[i].equipment["weapon"] !== undefined ){
 
-					equip.push({x : 555 , y : 305 , canvas:mySoldierList[i].equipment["weapon"].canvas , w : mySoldierList[i].equipment["weapon"].canvas.width , h : mySoldierList[i].equipment["weapon"].canvas.height , item : mySoldierList[i].equipment["weapon"] }) ;
+					equip.push({x : 555 , y : 305 , canvas:mySoldierList[i].equipment["weapon"].canvas , w : canvasMap[mySoldierList[i].equipment["weapon"].canvas].width , h : canvasMap[mySoldierList[i].equipment["weapon"].canvas].height , item : mySoldierList[i].equipment["weapon"] }) ;
 				}
-				this.soldierList.push({x:x,y:y,w:canvasMap['choose_soldier_back2'].width,h:canvasMap['choose_soldier_back2'].height,canvas:canvasMap['choose_soldier_back2'],skill:skill,equip:equip});
+				this.soldierList.push({x:x,y:y,w:canvasMap['choose_soldier_back2'].width,h:canvasMap['choose_soldier_back2'].height,canvas:'choose_soldier_back2',skill:skill,equip:equip});
 			}
 		},
 		initConsole : function(){
 			town.item = null ;
-			town.character.console = { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : canvasMap["console"] ,
+			town.character.console = { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : "console" ,
 				icon : { x : 1050 , y : 250 } ,
 				name : { x : 1115 , y : 285 } ,
 				content : [{ x : 1060 , y : 340 } ] 
 			};
-			town.transfer.console = { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : canvasMap["console"] ,
+			town.transfer.console = { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : "console" ,
 				icon : { x : 1050 , y : 250 } ,
 				content : [{ x : 1060 , y : 285 } ] 
 			};
 		},
 		initObject : function(){
-			this.nowTag = 	{ x : 540 , y : 295 , w : canvasMap["tag2"].width / 4 , h : canvasMap["tag2"].height , canvas : canvasMap["tag2"] , nowFrame : 0 , totalFrame : 4 , timer : 0 , delay : 5  } ;
+			this.nowTag = 	{ x : 540 , y : 295 , w : canvasMap["tag2"].width / 4 , h : canvasMap["tag2"].height , canvas : "tag2" , nowFrame : 0 , totalFrame : 4 , timer : 0 , delay : 5  } ;
 			this.box = { x : 1100 , y : 505 , w : canvasMap["box"].width , h : canvasMap["box"].height };
 			this.battle = { x : 100 , y : 530 , w : canvasMap["battle"].width , h : canvasMap["battle"].height };
-			this.map = { x : canvasWidth/2-canvasMap['map_0'].width/2 ,y : canvasHeight/2-canvasMap['map_0'].height/2 , w : canvasMap["map_0"].width  , h :canvasMap["map_0"].height , canvas : canvasMap["map_0"] ,
+			this.map = { x : canvasWidth/2-canvasMap['map_0'].width/2 ,y : canvasHeight/2-canvasMap['map_0'].height/2 , w : canvasMap["map_0"].width  , h :canvasMap["map_0"].height , canvas : "map_0" ,
 				closeButton : {
-					x : 1140 , y : 20 , w : canvasMap["close"].width , h : canvasMap["close"].height , canvas : canvasMap["close"]
+					x : 1140 , y : 20 , w : canvasMap["close"].width , h : canvasMap["close"].height , canvas : "close"
 				} ,
 				tag : [
-					{ x : 457 , y : 231 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : canvasMap["tag1"] , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 1 },
-					{ x : 470 , y : 281 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : canvasMap["tag1"] , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 2 }
+					{ x : 457 , y : 231 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : "tag1" , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 1 },
+					{ x : 470 , y : 281 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : "tag1" , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 2 },
+					{ x : 490 , y : 335 , w : canvasMap["tag1"].width / 7 , h : canvasMap["tag1"].height , canvas : "tag1" , nowFrame : 0 , totalFrame : 7 , timer : 0 , delay : 5 , stage : 3 }
 				] 
 			};
 			this.character = { 
-				chooseSoldier : { x : 8 , y : 540 , w : canvasMap["choose_soldier2"].width , h : canvasMap["choose_soldier2"].height , canvas : canvasMap["choose_soldier2"] },
-				status : { x : 690 , y : 280 , w : canvasMap["status"].width , h : canvasMap["status"].height , canvas : canvasMap["status"] },
-				skill : { x : 10 , y : 50 , w : canvasMap["skill"].width , h : canvasMap["skill"].height , canvas : canvasMap["skill"] },
-				item : { x : 690 , y : 30 , w: canvasMap["item"].width , h : canvasMap["item"].height , canvas : canvasMap["item"] ,
+				chooseSoldier : { x : 8 , y : 540 , w : canvasMap["choose_soldier2"].width , h : canvasMap["choose_soldier2"].height , canvas : "choose_soldier2" },
+				status : { x : 690 , y : 280 , w : canvasMap["status"].width , h : canvasMap["status"].height , canvas : "status" },
+				skill : { x : 10 , y : 50 , w : canvasMap["skill"].width , h : canvasMap["skill"].height , canvas : "skill" },
+				item : { x : 690 , y : 30 , w: canvasMap["item"].width , h : canvasMap["item"].height , canvas : "item" ,
 					list : [] ,
 					nowPage : 0 , 
-					up : { x : 995 , y : 85 , w: canvasMap["up"].width , h : canvasMap["up"].height , canvas : canvasMap["up"] } ,
-					down : { x : 995 , y : 180 , w: canvasMap["down"].width , h : canvasMap["down"].height , canvas : canvasMap["down"] } 
+					up : { x : 995 , y : 85 , w: canvasMap["up"].width , h : canvasMap["up"].height , canvas : "up" } ,
+					down : { x : 995 , y : 180 , w: canvasMap["down"].width , h : canvasMap["down"].height , canvas : "down" } 
 				},
-				equip : { x : 342 , y : 30 , w : canvasMap["equip"].width , h : canvasMap["equip"].height , canvas : canvasMap["equip"] },
-				console : { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : canvasMap["console"] ,
+				equip : { x : 342 , y : 30 , w : canvasMap["equip"].width , h : canvasMap["equip"].height , canvas : "equip" },
+				console : { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : "console" ,
 					icon : { x : 1050 , y : 250 } ,
 					name : { x : 1115 , y : 285 } ,
 					content : [{ x : 1060 , y : 340 } ] 
 				}
 
 			};
-			this.mission = { x : 540 , y : 533 , w : canvasMap["mission"].width , h : canvasMap["mission"].height , canvas : canvasMap["mission"] } ;
+			this.mission = { x : 540 , y : 533 , w : canvasMap["mission"].width , h : canvasMap["mission"].height , canvas : "mission" } ;
 			this.transfer = {	
-				chooseSoldier : { x : 8 , y : 540 , w : canvasMap["choose_soldier2"].width , h : canvasMap["choose_soldier2"].height , canvas : canvasMap["choose_soldier2"] },
-				console : { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : canvasMap["console"] ,
+				chooseSoldier : { x : 8 , y : 540 , w : canvasMap["choose_soldier2"].width , h : canvasMap["choose_soldier2"].height , canvas : "choose_soldier2" },
+				console : { x : 1040 , y : 240 , w : canvasMap["console"].width , h : canvasMap["console"].height , canvas : "console" ,
 					icon : { x : 1050 , y : 250 } ,
 					name : { x : 1115 , y : 285 , font : "30px Arial" , fillStyle : "black" } ,
 					content : [{ x : 1060 , y : 340 } ] 
 				},
-				button : {x : canvasWidth/2-canvasMap['transfer'].width/2 + 10 , y : canvasHeight/2-canvasMap['transfer'].height/2 + 25, h : canvasMap['transfer'].height , w : canvasMap['transfer'].width , canvas : canvasMap['transfer'] }
+				button : {x : canvasWidth/2-canvasMap['transfer'].width/2 + 10 , y : canvasHeight/2-canvasMap['transfer'].height/2 + 25, h : canvasMap['transfer'].height , w : canvasMap['transfer'].width , canvas : 'transfer' }
 			};
-			this.chat = { x : canvasWidth/2-canvasMap['chat'].width/2 , y : canvasHeight/2-canvasMap['chat'].height/2 , w : canvasMap['chat'].width , h : canvasMap['chat'].height , canvas : canvasMap['chat'] , 
+			this.chat = { x : canvasWidth/2-canvasMap['chat'].width/2 , y : canvasHeight/2-canvasMap['chat'].height/2 , w : canvasMap['chat'].width , h : canvasMap['chat'].height , canvas : 'chat' , 
 				//transferTextTag : { x : canvasWidth/2-canvasMap['chat'].width/2 + 300 , y : canvasHeight/2-canvasMap['chat'].height/2 + 300 , w : canvasMap['text_tag'].width , h : canvasMap['text_tag'].height , canvas : canvasMap['text_tag']}  ,
-				transferTextBack : { x : canvasWidth/2-canvasMap['chat_back'].width/2 - 120  , y : canvasHeight/2-canvasMap['chat_back'].height/2 + 50 , canvas : canvasMap["chat_back"] , w : 310 , h : 50 } ,
+				transferTextBack : { x : canvasWidth/2-canvasMap['chat_back'].width/2 - 120  , y : canvasHeight/2-canvasMap['chat_back'].height/2 + 50 , canvas : "chat_back" , w : 310 , h : 50 } ,
 				transferText : { x : canvasWidth/2-canvasMap['chat'].width/2 + 300 , y : canvasHeight/2-canvasMap['chat'].height/2 + 300 , text : "I want to transfer jobs." , font : "30px Arial" , fillStyle : "blue"  }  
 			} ;
 			this.transferChoose = {
-				beginner : { x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 , y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 , w : canvasMap["choose_transfer4"].width , h : canvasMap["choose_transfer4"].height , canvas : canvasMap["choose_transfer4"] ,
+				beginner : { x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 , y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 , w : canvasMap["choose_transfer4"].width , h : canvasMap["choose_transfer4"].height , canvas : "choose_transfer4" ,
 					list : [
-						{ x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 + 10 , y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 + 14, h : canvasMap['choose_soldier_back2'].height , w : canvasMap['choose_soldier_back2'].width , canvas : canvasMap['choose_soldier_back2'] , soldier : soldierMap["archer"]},
-						{ x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 + 10 + 165 , y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 + 14, h : canvasMap['choose_soldier_back2'].height , w : canvasMap['choose_soldier_back2'].width , canvas : canvasMap['choose_soldier_back2'] , soldier : soldierMap["magician"]},
-						{ x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 + 10 + 165 *2 , y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 + 14, h : canvasMap['choose_soldier_back2'].height , w : canvasMap['choose_soldier_back2'].width , canvas : canvasMap['choose_soldier_back2'] , soldier : soldierMap["rogue"]},
-						{ x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 + 10 + 165 *3, y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 + 14, h : canvasMap['choose_soldier_back2'].height , w : canvasMap['choose_soldier_back2'].width , canvas : canvasMap['choose_soldier_back2'] , soldier : soldierMap["swordman"]}
+						{ x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 + 10 , y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 + 14, h : canvasMap['choose_soldier_back2'].height , w : canvasMap['choose_soldier_back2'].width , canvas : 'choose_soldier_back2' , soldier : soldierMap["archer"]},
+						{ x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 + 10 + 165 , y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 + 14, h : canvasMap['choose_soldier_back2'].height , w : canvasMap['choose_soldier_back2'].width , canvas : 'choose_soldier_back2' , soldier : soldierMap["magician"]},
+						{ x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 + 10 + 165 *2 , y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 + 14, h : canvasMap['choose_soldier_back2'].height , w : canvasMap['choose_soldier_back2'].width , canvas : 'choose_soldier_back2' , soldier : soldierMap["rogue"]},
+						{ x : canvasWidth/2-canvasMap['choose_transfer4'].width/2 + 10 + 165 *3, y : canvasHeight/2-canvasMap['choose_transfer4'].height/2 - 200 + 14, h : canvasMap['choose_soldier_back2'].height , w : canvasMap['choose_soldier_back2'].width , canvas : 'choose_soldier_back2' , soldier : soldierMap["swordman"]}
 					]
 				}
 			}
@@ -3295,18 +3551,18 @@ var Defender = (function(){
 		setMouseEnterEquipClick : function(i,j){
 			town.initConsole();
 			town.item = this.soldierList[i].equip[j].item ;
-			town.character.console.icon.canvas = itemList[i].canvas ;
-			town.character.console.icon.w = itemList[i].canvas.width ;
-			town.character.console.icon.h = itemList[i].canvas.height ;
+			town.character.console.icon.canvas = town.item.canvas ;
+			town.character.console.icon.w = canvasMap[town.item.canvas].width ;
+			town.character.console.icon.h = canvasMap[town.item.canvas].height ;
 			town.character.console.icon.x += 10 , town.character.console.icon.y += 10 ; 
 			town.character.console.name.x += 10 , town.character.console.name.y += 10 ;
-			town.character.console.name.text = itemList[i].name ;
-			town.character.console.content[0].text = itemList[i].description ;
-			if ( itemList[i].type !== undefined ){
-				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Type : "+itemList[i].type});
+			town.character.console.name.text = town.item.name ;
+			town.character.console.content[0].text = town.item.description ;
+			if ( town.item.type !== undefined ){
+				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Type : "+town.item.type});
 			} 
-			if ( itemList[i].point !== undefined ){
-				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Point : "+itemList[i].point});
+			if ( town.item.point !== undefined ){
+				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Point : "+town.item.point});
 			} 
 		},
 		setMouseEnterEquipDblclick : function(i,j){
@@ -3334,8 +3590,8 @@ var Defender = (function(){
 			town.initConsole();
 			town.item = itemList[i] ;
 			town.character.console.icon.canvas = itemList[i].canvas ;
-			town.character.console.icon.w = itemList[i].canvas.width ;
-			town.character.console.icon.h = itemList[i].canvas.height ;
+			town.character.console.icon.w = canvasMap[itemList[i].canvas].width ;
+			town.character.console.icon.h = canvasMap[itemList[i].canvas].height ;
 			town.character.console.icon.x += 10 , town.character.console.icon.y += 10 ; 
 			town.character.console.name.x += 10 , town.character.console.name.y += 10 ;
 			town.character.console.name.text = itemList[i].name ;
@@ -3350,8 +3606,8 @@ var Defender = (function(){
 		setMouseEnterItemDblClick : function(j){
 			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
 				if ( mouseOver === "soldier" + i ){
-					if ( itemList[j].role.indexOf(mySoldierList[i].id) !== -1 ){
-						mySoldierList[i].equip(j) ;
+					if ( itemList[town.character.item.nowPage*8+j].role.indexOf(mySoldierList[i].id) !== -1 ){
+						mySoldierList[i].equip(town.character.item.nowPage*8+j) ;
 						town.initCharacterObject();
 					}
 					return ;
@@ -3361,7 +3617,7 @@ var Defender = (function(){
 		setMouseEnterSkillClick : function(i,j){
 			this.character.console.content = [{ x : 1060 , y : 340 }] ;
 			var skill = mySoldierList[i].skill[j] ;
-			town.character.console.icon.canvas = canvasMap[skill.canvasName+"_icon"] ;
+			town.character.console.icon.canvas = skill.canvasName+"_icon" ;
 			town.character.console.icon.w = canvasMap[skill.canvasName+"_icon"].width / 3 ;
 			town.character.console.icon.h = canvasMap[skill.canvasName+"_icon"].height ;
 			if ( mySoldierList[i].skill[j].nowLevel > 0 )
@@ -3422,11 +3678,12 @@ var Defender = (function(){
 						mySoldierList[i].removeEquip(e) ;
 
 					mySoldierList[i] = common.clone(town.transfer.console.soldier);
-					mySoldierList[i].level = level ;
 					mySoldierList[i].nowExp = nowExp ;
 					mySoldierList[i].goalExp = goalExp ;
 					mySoldierList[i].point = point ;
-					mySoldierList[i].upgrade(level-1);
+					mySoldierList[i].level = 1 ;
+					for ( var j = 0 ; j < level-1 ; j ++ )
+						mySoldierList[i].upgrade(1);
 					break ;
 				}
 			}
@@ -3746,12 +4003,12 @@ var Defender = (function(){
 			gameCtx.drawImage(canvasMap['mission'],this.mission.x,this.mission.y);
 		},
 		showMap : function(){
-			gameCtx.drawImage(this.map.canvas,this.map.x,this.map.y);
-			gameCtx.drawImage(this.map.closeButton.canvas,this.map.closeButton.x,this.map.closeButton.y);
+			gameCtx.drawImage(canvasMap[this.map.canvas],this.map.x,this.map.y);
+			gameCtx.drawImage(canvasMap[this.map.closeButton.canvas],this.map.closeButton.x,this.map.closeButton.y);
 			//tag
 			for ( var i = 0 ; i < this.map.tag.length ; i ++ ){
 				if ( this.map.tag[i].stage <= doneStage + 1 ){
-					gameCtx.drawImage(this.map.tag[i].canvas,this.map.tag[i].nowFrame*this.map.tag[i].w,0,this.map.tag[i].w,this.map.tag[i].h,this.map.tag[i].x,this.map.tag[i].y,this.map.tag[i].w,this.map.tag[i].h);
+					gameCtx.drawImage(canvasMap[this.map.tag[i].canvas],this.map.tag[i].nowFrame*this.map.tag[i].w,0,this.map.tag[i].w,this.map.tag[i].h,this.map.tag[i].x,this.map.tag[i].y,this.map.tag[i].w,this.map.tag[i].h);
 					common.loopAnimation(this.map.tag[i]);
 				}
 				if ( this.map.tag[i].stage === doneStage + 1 ){
