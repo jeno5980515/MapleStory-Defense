@@ -1476,7 +1476,7 @@ var Defender = (function(){
 
 			var orangeMushroom = common.createMonster({
 				id: 3,
-				maxHp: 500,
+				maxHp: 450,
 				def: 5,
 				speed: 1.5,
 				moveFrame: 3,
