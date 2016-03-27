@@ -13,7 +13,7 @@ var Defender = (function(){
 	"bg_town_back0","bg_town_back1","bg_town_back2","bg_town_back3","bg_town_back4","bg_town_back5","bg_town_back6","bg_town_back7",
 	"box","battle","status","choose_soldier_back2","choose_soldier2","skill","up","upgrade","skill_back","item","equip","console","up","down","name","end_chat","chat","mission","chat_back","choose_transfer4","transfer",
 	"tag0","tag1","tag2","map_0",
-	"money","item_0","item_1","item_2","item_3",
+	"money","items",
 	"archer_stand","archer_attack","archer_hit","archer_attack_effect","archer_skill0_icon","archer_skill0_hit","archer_skill0_effect","archer_skill0","archer_skill1_icon",
 	"magician_stand","magician_attack","magician_hit","magician_attack_effect","magician_skill0_icon","magician_skill0_hit","magician_skill0_effect","magician_skill0","magician_skill1_icon","magician_skill1_hit","magician_skill1_effect","magician_skill1",
 	"rogue_stand","rogue_attack","rogue_hit","rogue_attack_effect","rogue_skill0_icon","rogue_skill0_hit","rogue_skill0_effect","rogue_skill0","rogue_skill0_hit_effect","rogue_skill1_icon","rogue_skill1_hit","rogue_skill1_effect","rogue_skill1",
@@ -34,7 +34,7 @@ var Defender = (function(){
 	var monsterIdList = ['snail','bat',"ironhog","orange-mushroom","shroom"];
 	var roleDescriptionList = ['beginner','archer','magician','rogue',"swordman"] ;
 	var monsterDescriptionList = ['snail','bat',"ironhog","orange-mushroom"] ;
-	var itemIdList = ["sword","sapphireStaff","scimitar","singleEarring"] ;
+	var itemIdList = ["sword","sapphireStaff","scimitar","singleEarring","hunterBow","workGlove","triangularZamadar","stolenFence"] ;
 	var soldierMap = {} ; 
 	var monsterMap = {} ;
 	var itemMap = {} ;
@@ -261,9 +261,10 @@ var Defender = (function(){
 			var item = {
 				name : data.name || "" ,
 				id : data.id || 0 ,
-				canvas : "item_"+data.id ,
+				canvas : "items" ,
 				atk : data.atk || 0 ,
 				speed : data.speed || 0 ,
+				range : data.range || 0 ,
 				effect : data.effect || [] ,
 				f : data.f ,
 				description : data.description || "" ,
@@ -492,6 +493,60 @@ var Defender = (function(){
 				}
 			});
 			itemMap["singleEarring"] = singleEarring ;
+
+			var hunterBow = common.createItem({
+				id : 4 ,
+				name : "Hunter Bow" ,
+				type : "weapon" ,
+				description : "Increase damage." ,
+				role : [1] ,
+				atk : 5 ,
+				f : function(d){
+					d.itemAtk += this.atk ;
+				}
+			});
+			itemMap["hunterBow"] = hunterBow ;
+
+			var workGlove = common.createItem({
+				id : 5 ,
+				name : "Work Glove" ,
+				type : "glove" ,
+				description : "Increase Range." ,
+				role : [0,1,2,3,4] ,
+				range : 5 ,
+				f : function(d){
+					d.itemRange += this.range ;
+				}
+			});
+			itemMap["workGlove"] = workGlove ;
+
+			var triangularZamadar = common.createItem({
+				id : 6 ,
+				name : "Triangular Zamadar" ,
+				type : "weapon" ,
+				description : "Increase damage." ,
+				role : [3] ,
+				atk : 4 ,
+				f : function(d){
+					d.itemAtk += this.atk ;
+				}
+			});
+			itemMap["triangularZamadar"] = triangularZamadar ;
+
+			var stolenFence = common.createItem({
+				id : 7 ,
+				name : "Stolen Fence" ,
+				type : "shield" ,
+				description : "Increase range and decrease attack time." ,
+				role : [3] ,
+				range : 3 ,
+				speed : -1 ,
+				f : function(d){
+					d.itemSpeed += this.speed ;
+					d.itemRange += this.range ;
+				}
+			});
+			itemMap["stolenFence"] = stolenFence ;
 
 		},
 		initSoldierMap : function(){
@@ -1475,7 +1530,7 @@ var Defender = (function(){
 				offsetX : 0 ,
 				offsetY : 9 ,
 				money : 10 ,
-				item : [{name:"sword",probability:0.1},{name:"sapphireStaff",probability:0.05},{name:"scimitar",probability:0.05},{name:"singleEarring",probability:0.05}] 
+				item : [{name:"sword",probability:0.1},{name:"sapphireStaff",probability:0.05},{name:"scimitar",probability:0.05},{name:"singleEarring",probability:0.05},{name:"hunterBow",probability:0.05},{name:"workGlove",probability:0.05},{name:"triangularZamadar",probability:0.05},{name:"stolenFence",probability:0.05}] 
 			});
 			monsterMap['snail'] = snail ;
 
@@ -1528,7 +1583,7 @@ var Defender = (function(){
 				offsetY : -10 ,
 				hitDy : 25 ,
 				money : 25 ,
-				item : [{name:"sword",probability:0.1},{name:"sapphireStaff",probability:0.05},{name:"scimitar",probability:0.05},{name:"singleEarring",probability:0.05}] 
+				item : [{name:"sword",probability:0.1},{name:"sapphireStaff",probability:0.05},{name:"scimitar",probability:0.05},{name:"singleEarring",probability:0.05},{name:"hunterBow",probability:0.05},{name:"workGlove",probability:0.05},{name:"triangularZamadar",probability:0.05},{name:"stolenFence",probability:0.05}] 
 			});
 			monsterMap['orange-mushroom'] = orangeMushroom ;
 
@@ -1544,7 +1599,7 @@ var Defender = (function(){
 				offsetY : 5 ,
 				hitDy : 25 ,
 				money : 20 ,
-				item : [{name:"sword",probability:0.1},{name:"sapphireStaff",probability:0.05},{name:"scimitar",probability:0.05},{name:"singleEarring",probability:0.05}] 
+				item : [{name:"sword",probability:0.1},{name:"sapphireStaff",probability:0.05},{name:"scimitar",probability:0.05},{name:"singleEarring",probability:0.05},{name:"hunterBow",probability:0.05},{name:"workGlove",probability:0.05},{name:"triangularZamadar",probability:0.05},{name:"stolenFence",probability:0.05}] 
 			});
 			monsterMap['shroom'] = shroom ;
 
@@ -1670,11 +1725,11 @@ var Defender = (function(){
 									canvas : item.canvas ,
 									x : this.x + di + 20,
 									y : this.y - 10 ,
-									nowFrame : 0 ,
+									nowFrame : item.id ,
 									delay : 70 ,
 									timer : 0 ,
 									totalFrame : 0,
-									width : canvasMap[item.canvas].width , 
+									width : canvasMap[item.canvas].width / itemIdList.length , 
 									height : canvasMap[item.canvas].height ,
 									ratio : 0.7 ,
 									effect : [{type:"rotate",speed:17,remain:30},{type:"gravity",remain:30,vy:-10}] ,
@@ -1938,6 +1993,7 @@ var Defender = (function(){
 				itemRange : 0 ,
 				speed : data.speed || 0 ,  // 1 attack need sec
 				tempSpeed : data.speed || 0 ,
+				tempRange : data.range || 0 ,
 				range : data.range || 0 ,
 				level : data.level || 1 ,
 				effectTotalFrame : data.effectTotalFrame || 1 ,
@@ -1973,12 +2029,14 @@ var Defender = (function(){
 				refreshState : function(){
 					this.itemAtk = 0 ;
 					this.itemSpeed = 0 ;
+					this.itemRange = 0 ;
 					for ( var e in this.equipment ){
 						if ( this.equipment[e] !== undefined )
 							this.equipment[e].f(this);
 					}
 					this.tempAtk = this.atk + this.itemAtk ;
 					this.tempSpeed = this.speed + this.itemSpeed ;
+					this.tempRange = this.range + this.itemRange ;
 				},
 				reset : function(){
 					this.state = "stand" ;
@@ -2016,7 +2074,7 @@ var Defender = (function(){
 						if ( this.skill[i].nowLevel > 0 ){
 							if (  this.skill[i].type === "active" && ( this.state === "stand" || this.state === this.skill[i].canvas.state ) && this.atkTimer <= 0  ){
 								this.tempAttackType = this.attackType ;
-								var result = this.skill[i].f(x,y,this.range,this.state,this[this.state],this.tempAtk,this.effect,this.skill[i].ratio,this.tempAttackType) ;
+								var result = this.skill[i].f(x,y,this.tempRange,this.state,this[this.state],this.tempAtk,this.effect,this.skill[i].ratio,this.tempAttackType) ;
 								var state = result.state ;
 								var done = result.done ;
 								if ( state === "stand" && done === true ){
@@ -2028,7 +2086,7 @@ var Defender = (function(){
 									this.skill[i].init(this.effect);
 								}
 							} else {
-								var result = this.skill[i].f(x,y,this.range,"null",this[this.state],this.tempAtk) ;
+								var result = this.skill[i].f(x,y,this.tempRange,"null",this[this.state],this.tempAtk) ;
 							}
 						}
 					}
@@ -2080,7 +2138,7 @@ var Defender = (function(){
 					} 
 					if ( this.state === "stand" ){
 						for ( var i = 0 ; i < monsterList.length ; i ++ ){
-							if ( Math.abs(monsterList[i].x-x) <= this.range && monsterList[i].hitAble === true ){
+							if ( Math.abs(monsterList[i].x-x) <= this.tempRange && monsterList[i].hitAble === true ){
 								this.atkTimer = this.tempSpeed ;
 								this.attack.timer = 0 ;
 								this.state = "attack" ;					
@@ -3281,7 +3339,7 @@ var Defender = (function(){
 			},
 			init : function(){
 				stage.init();
-				stage.initExp(200);
+				stage.initExp(400);
 				stage.addMonsterDelay = 100 ;
 			},
 			showAll : function(){
@@ -3309,7 +3367,7 @@ var Defender = (function(){
 			},
 			init : function(){
 				stage.init();
-				stage.initExp(250);
+				stage.initExp(800);
 				stage.addMonsterDelay = 30 ;
 			},
 			showAll : function(){
@@ -3358,7 +3416,7 @@ var Defender = (function(){
 			var x = town.character.item.x + 21 , y = town.character.item.y + 60;
 			for ( var i = page * 8 ; i < itemList.length && i < page * 8 + 8 ; i ++ ){
 				var item = itemList[i] ;
-				town.character.item.list.push({x:x,y:y,w:canvasMap[item.canvas].width,h:canvasMap[item.canvas].height,canvas:item.canvas}) ;
+				town.character.item.list.push({x:x,y:y,w:canvasMap[item.canvas].width/itemIdList.length,h:canvasMap[item.canvas].height,canvas:item.canvas,nowFrame:item.id}) ;
 				x += 72 ;
 				if ( i % 4 === 3 ){
 					x = town.character.item.x + 21 , y += 70 ;
@@ -3399,10 +3457,16 @@ var Defender = (function(){
 				}
 				var equip = [] ;
 				if ( mySoldierList[i].equipment["weapon"] !== undefined ){
-					equip.push({x : 555 , y : 305 , canvas:mySoldierList[i].equipment["weapon"].canvas , w : canvasMap[mySoldierList[i].equipment["weapon"].canvas].width , h : canvasMap[mySoldierList[i].equipment["weapon"].canvas].height , item : mySoldierList[i].equipment["weapon"] }) ;
+					equip.push({x : 555 , y : 305 , canvas:mySoldierList[i].equipment["weapon"].canvas , w : canvasMap[mySoldierList[i].equipment["weapon"].canvas].width / itemIdList.length , h : canvasMap[mySoldierList[i].equipment["weapon"].canvas].height , item : mySoldierList[i].equipment["weapon"] , nowFrame : mySoldierList[i].equipment["weapon"].id }) ;
 				} 
 				if ( mySoldierList[i].equipment["ear"] !== undefined ){
-					equip.push({x : 555 , y : 235 , canvas:mySoldierList[i].equipment["ear"].canvas , w : canvasMap[mySoldierList[i].equipment["ear"].canvas].width , h : canvasMap[mySoldierList[i].equipment["ear"].canvas].height , item : mySoldierList[i].equipment["ear"] }) ;
+					equip.push({x : 555 , y : 235 , canvas:mySoldierList[i].equipment["ear"].canvas , w : canvasMap[mySoldierList[i].equipment["ear"].canvas].width / itemIdList.length , h : canvasMap[mySoldierList[i].equipment["ear"].canvas].height , item : mySoldierList[i].equipment["ear"]  , nowFrame : mySoldierList[i].equipment["ear"].id }) ;
+				} 
+				if ( mySoldierList[i].equipment["shield"] !== undefined ){
+					equip.push({x : 621 , y : 305 , canvas:mySoldierList[i].equipment["shield"].canvas , w : canvasMap[mySoldierList[i].equipment["shield"].canvas].width / itemIdList.length , h : canvasMap[mySoldierList[i].equipment["shield"].canvas].height , item : mySoldierList[i].equipment["shield"]  , nowFrame : mySoldierList[i].equipment["shield"].id }) ;
+				} 
+				if ( mySoldierList[i].equipment["glove"] !== undefined ){
+					equip.push({x : 356 , y : 372 , canvas:mySoldierList[i].equipment["glove"].canvas , w : canvasMap[mySoldierList[i].equipment["glove"].canvas].width / itemIdList.length , h : canvasMap[mySoldierList[i].equipment["glove"].canvas].height , item : mySoldierList[i].equipment["glove"]  , nowFrame : mySoldierList[i].equipment["glove"].id }) ;
 				} 
 				this.soldierList.push({x:x,y:y,w:canvasMap['choose_soldier_back2'].width,h:canvasMap['choose_soldier_back2'].height,canvas:'choose_soldier_back2',skill:skill,equip:equip});
 			}
@@ -3599,7 +3663,8 @@ var Defender = (function(){
 			town.initConsole();
 			town.item = this.soldierList[i].equip[j].item ;
 			town.character.console.icon.canvas = town.item.canvas ;
-			town.character.console.icon.w = canvasMap[town.item.canvas].width ;
+			town.character.console.icon.nowFrame = town.item.id ;
+			town.character.console.icon.w = canvasMap[town.item.canvas].width / itemIdList.length;
 			town.character.console.icon.h = canvasMap[town.item.canvas].height ;
 			town.character.console.icon.x += 10 , town.character.console.icon.y += 10 ; 
 			town.character.console.name.x += 10 , town.character.console.name.y += 10 ;
@@ -3613,6 +3678,9 @@ var Defender = (function(){
 			} 
 			if ( town.item.speed !== undefined && town.item.speed !== 0 ){
 				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Attack Time : "+town.item.speed});
+			} 
+			if ( town.item.range !== undefined && town.item.range !== 0 ){
+				town.character.console.content.push({x:town.character.console.content[0].x,y:0,text:"Range : "+town.item.range});
 			} 
 		},
 		setMouseEnterEquipDblclick : function(i,j){
@@ -3640,7 +3708,8 @@ var Defender = (function(){
 			town.initConsole();
 			town.item = itemList[i] ;
 			town.character.console.icon.canvas = itemList[i].canvas ;
-			town.character.console.icon.w = canvasMap[itemList[i].canvas].width ;
+			town.character.console.icon.nowFrame = itemList[i].id ;
+			town.character.console.icon.w = canvasMap[itemList[i].canvas].width / itemIdList.length ;
 			town.character.console.icon.h = canvasMap[itemList[i].canvas].height ;
 			town.character.console.icon.x += 10 , town.character.console.icon.y += 10 ; 
 			town.character.console.name.x += 10 , town.character.console.name.y += 10 ;
@@ -4201,23 +4270,31 @@ var Defender = (function(){
 			}
 			for ( var i = 0 ; i < mySoldierList.length ; i ++ ){
 				if ( mouseOver === "soldier" + i ){
-					gameCtx.fillText(mySoldierList[i].name,this.character.status.x+120,this.character.status.y+88);
-					gameCtx.fillText(mySoldierList[i].level,this.character.status.x+120,this.character.status.y+127);
-					gameCtx.fillText(mySoldierList[i].nowExp+"/"+mySoldierList[i].goalExp,this.character.status.x+120,this.character.status.y+163);
+					gameCtx.fillText(mySoldierList[i].level+" (" +mySoldierList[i].transferLevel+")" ,this.character.status.x+120,this.character.status.y+88);
+					gameCtx.fillText(mySoldierList[i].nowExp+"/"+mySoldierList[i].goalExp,this.character.status.x+120,this.character.status.y+123);
 					var atkText = mySoldierList[i].atk ;
 					if ( mySoldierList[i].itemAtk > 0 ){
 						atkText += " (+" + mySoldierList[i].itemAtk + ")" ;
 					} else if ( mySoldierList[i].itemAtk < 0  ){
 						atkText += " (-" + mySoldierList[i].itemAtk + ")" ;
 					}
-					gameCtx.fillText(atkText,this.character.status.x+147,this.character.status.y+212);
+					gameCtx.fillText(atkText,this.character.status.x+147,this.character.status.y+174);
 					var speedText = mySoldierList[i].speed ;
 					if ( mySoldierList[i].itemSpeed > 0 ){
 						speedText += " (+" + mySoldierList[i].itemSpeed + ")" ;
 					} else if ( mySoldierList[i].itemSpeed < 0  ){
 						speedText += " (" + mySoldierList[i].itemSpeed + ")" ;
 					}
-					gameCtx.fillText(speedText,this.character.status.x+147,this.character.status.y+250);
+					gameCtx.fillText(speedText,this.character.status.x+147,this.character.status.y+212);
+
+					var rangeText = mySoldierList[i].range ;
+					if ( mySoldierList[i].itemRange > 0 ){
+						rangeText += " (+" + mySoldierList[i].itemRange + ")" ;
+					} else if ( mySoldierList[i].itemRange < 0  ){
+						rangeText += " (" + mySoldierList[i].itemRange + ")" ;
+					}
+					gameCtx.fillText(rangeText,this.character.status.x+147,this.character.status.y+250);
+
 					for ( var j = 0 ; j < this.soldierList[i].skill.length ; j ++ ){
 						common.drawObject(this.soldierList[i].skill[j]);
 						common.drawObject(this.soldierList[i].skill[j].icon);
