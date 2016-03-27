@@ -1733,7 +1733,7 @@ var Defender = (function(){
 									height : canvasMap[item.canvas].height ,
 									ratio : 0.7 ,
 									effect : [{type:"rotate",speed:17,remain:30},{type:"gravity",remain:30,vy:-10}] ,
-									degree : 45 
+									degree : 39 
 								});
 								di += 50 ;
 							}
@@ -1752,7 +1752,7 @@ var Defender = (function(){
 								height : canvasMap["money"].height ,
 								ratio : 1 ,
 								effect : [{type:"rotate",speed:17,remain:30},{type:"gravity",remain:30,vy:-10}] ,
-								degree : 45 
+								degree : 39 
 							});
 							tempMoney += this.money ;
 						}
